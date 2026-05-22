@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkVault — 흩어진 링크를 가치 있는 지식으로</title>
+<title>LinkVault — 저장한 콘텐츠가 진짜 내 지식이 되는 곳</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -194,15 +194,11 @@
   .counter span{color:var(--primary)}
   .counter-label{font-size:14px;color:var(--stone);margin-top:8px;font-weight:600}
 
-  footer{background:var(--canvas);border-top:1px solid var(--hairline);padding:48px 0 32px}
-  .fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
-  .fgrid h4{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:16px}
-  .fgrid a, .fgrid p{display:block;font-size:14px;color:var(--mute);margin-bottom:10px}
-  .fbrand{font-family:var(--display);font-weight:800;font-size:22px;color:var(--primary);letter-spacing:-1px;margin-bottom:12px}
-  .fbottom{
-    margin-top:40px;padding-top:24px;border-top:1px solid var(--hairline);
-    display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);
-  }
+  footer{background:var(--canvas);border-top:1px solid var(--hairline);padding:32px 0}
+  .fsimple{display:flex;justify-content:space-between;align-items:center;gap:24px}
+  .fsimple p{font-size:14px;color:var(--mute);margin-top:4px}
+  .fbrand{font-family:var(--display);font-weight:800;font-size:22px;color:var(--primary);letter-spacing:-1px}
+  .fcopy{font-size:13px;color:var(--mute)}
 
   .scrim{
     position:fixed;inset:0;background:rgba(0,0,0,.5);
@@ -255,14 +251,13 @@
     .features,.steps{grid-template-columns:1fr}
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
-    .fgrid{grid-template-columns:1fr 1fr}
+    .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
   }
   @media (max-width:480px){
     .wrap{padding:0 16px} h1{font-size:36px}
     header{padding:48px 0} section{padding:48px 0}
     .hero-form{flex-direction:column}
     .masonry{columns:2;column-gap:6px}
-    .fgrid{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -274,7 +269,6 @@
     <div class="nav-links">
       <a href="#features" class="mute">기능</a>
       <a href="#how" class="mute">작동 방식</a>
-      <a href="#" class="mute">로그인</a>
       <button class="btn btn-primary signup" onclick="openModal()">사전 등록</button>
     </div>
   </div>
@@ -284,20 +278,19 @@
   <div class="wrap">
     <div class="hero">
       <div>
-        <span class="pill"><span class="live"></span>2026 비공개 베타 사전 등록 오픈</span>
         <h1>흩어진 링크를<br>가치 있는 <span class="accent">지식</span>으로.</h1>
-        <p class="sub">유튜브, 링크드인, 인스타그램, 웹에서 발견한 콘텐츠를 한 번의 공유로 모으고, AI가 자동으로 요약·분류·연결합니다. 단순한 서랍이 아니라, 다시 꺼내 쓰는 금고입니다.</p>
+        <p class="sub">유튜브, 링크드인, 아티클까지 — 한 번의 공유로 모으면 AI가 알아서 요약하고 정리합니다. 필요할 때 다시 꺼내 쓰는 나만의 지식 금고.</p>
         <form class="hero-form" onsubmit="return heroSubmit(event)">
           <input type="email" id="heroEmail" placeholder="이메일 주소를 입력하세요" required>
           <button type="submit" class="btn btn-primary btn-lg">먼저 받아보기</button>
         </form>
       </div>
       <div class="masonry" aria-hidden="true">
-        <div class="pin"><span class="src">YouTube</span><div class="ph b">3시간짜리 강의를 5분 요약으로</div></div>
-        <div class="pin"><span class="src">Article</span><div class="ph d">읽다 만 아티클, 자동 태깅</div></div>
-        <div class="pin"><span class="src">LinkedIn</span><div class="ph e">스크랩한 인사이트 모음</div></div>
-        <div class="pin"><span class="src">Instagram</span><div class="ph a">저장한 레퍼런스 한눈에</div></div>
-        <div class="pin"><span class="src">Web</span><div class="ph c">의미 기반 검색으로 다시 찾기</div></div>
+        <div class="pin"><span class="src">YouTube</span><div class="ph b">3시간 강의도 5분 요약으로</div></div>
+        <div class="pin"><span class="src">Article</span><div class="ph d">읽다 만 아티클, 자동 태그</div></div>
+        <div class="pin"><span class="src">LinkedIn</span><div class="ph e">스크랩한 인사이트 한 곳에</div></div>
+        <div class="pin"><span class="src">Instagram</span><div class="ph a">저장한 레퍼런스 모음</div></div>
+        <div class="pin"><span class="src">Web</span><div class="ph c">키워드 없이 의미로 검색</div></div>
         <div class="pin"><span class="src">Newsletter</span><div class="ph f">주간 다이제스트로 복습</div></div>
       </div>
     </div>
@@ -308,22 +301,22 @@
   <div class="wrap">
     <div class="eyebrow">왜 LinkVault인가</div>
     <h2>저장만 하는 도구는 많습니다.<br><span class="nowrap">다시 꺼내 쓰게 만드는 도구는 드뭅니다.</span></h2>
-    <p class="section-sub">LinkVault는 단순 북마크가 아니라, 모은 콘텐츠를 실제로 활용 가능한 개인 지식으로 바꾸는 데 집중합니다.</p>
+    <p class="section-sub">LinkVault는 단순 북마크가 아니라, 모아둔 콘텐츠가 진짜 내 지식이 되도록 돕습니다.</p>
     <div class="features">
       <div class="fcard">
         <div class="ficon">📥</div>
-        <h3>원탭 통합 수집</h3>
-        <p>어느 앱에서든 '공유하기' 한 번. 브라우저 익스텐션으로 PC에서도 클릭 한 번에 저장됩니다. 플랫폼을 가리지 않습니다.</p>
+        <h3>한 번의 공유로 저장</h3>
+        <p>어떤 앱이든 '공유하기'만 누르면 끝. PC에서는 브라우저 익스텐션 한 번 클릭이면 됩니다.</p>
       </div>
       <div class="fcard">
         <div class="ficon">✨</div>
-        <h3>AI 자동 정리</h3>
-        <p>저장하는 순간 AI가 핵심을 요약하고, 태그를 달고, 관련 콘텐츠끼리 연결합니다. 정리에 쓰던 시간을 아껴 드립니다.</p>
+        <h3>AI가 알아서 정리</h3>
+        <p>저장하는 순간 AI가 요약하고, 태그를 달고, 비슷한 콘텐츠끼리 묶어줍니다. 정리할 일이 없어집니다.</p>
       </div>
       <div class="fcard">
         <div class="ficon">🔍</div>
-        <h3>의미 기반 검색</h3>
-        <p>"예전에 본 그 마케팅 글"을 정확한 키워드 없이도 찾아냅니다. 주간 다이제스트로 잊은 콘텐츠를 다시 마주하세요.</p>
+        <h3>의미로 찾는 검색</h3>
+        <p>"예전에 봤던 그 마케팅 글" — 정확한 단어가 기억나지 않아도 찾아냅니다. 매주 다이제스트로도 다시 만나요.</p>
       </div>
     </div>
   </div>
@@ -332,22 +325,22 @@
 <section id="how">
   <div class="wrap">
     <div class="eyebrow">작동 방식</div>
-    <h2>세 단계면 충분합니다.</h2>
+    <h2>3단계면 충분합니다.</h2>
     <div class="steps">
       <div class="step">
         <div class="n">01</div>
-        <h3>공유한다</h3>
-        <p>유튜브 영상, 링크드인 글, 아티클 — 발견한 즉시 LinkVault로 공유하거나 익스텐션을 클릭합니다.</p>
+        <h3>저장하기</h3>
+        <p>유튜브 영상, 링크드인 글, 아티클 — 발견하는 즉시 LinkVault로 공유하거나 익스텐션 클릭.</p>
       </div>
       <div class="step">
         <div class="n">02</div>
-        <h3>맡긴다</h3>
-        <p>AI가 요약·태그·분류를 자동으로 처리합니다. 폴더를 고르거나 메모를 쓸 필요가 없습니다.</p>
+        <h3>AI 자동 분류 및 요약</h3>
+        <p>AI가 핵심을 요약하고 태그를 달아 분류까지 끝냅니다. 폴더를 고를 필요도, 메모를 쓸 필요도 없어요.</p>
       </div>
       <div class="step">
         <div class="n">03</div>
-        <h3>다시 쓴다</h3>
-        <p>의미 검색과 주간 다이제스트로, 금고에 보관한 콘텐츠가 실제 지식이 되어 돌아옵니다.</p>
+        <h3>알림 받고 다시 보기</h3>
+        <p>주간 다이제스트 알림과 의미 기반 검색으로, 모아둔 콘텐츠가 진짜 내 지식이 되어 돌아옵니다.</p>
       </div>
     </div>
   </div>
@@ -356,12 +349,12 @@
 <div class="cta-strip">
   <div class="wrap">
     <div>
-      <h2>출시 알림을 가장 먼저 받으세요.</h2>
-      <p>사전 등록자에게는 정식 출시 시 프리미엄 3개월을 무료로 드립니다.</p>
+      <h2>출시 소식, 가장 먼저 받아보세요.</h2>
+      <p>사전 등록하신 분들께 출시 소식을 가장 먼저 전해드릴게요.</p>
     </div>
     <div style="text-align:center">
-      <div class="counter"><span id="count">1,284</span>명</div>
-      <div class="counter-label">이미 사전 등록했습니다</div>
+      <div class="counter"><span id="count">17</span>명</div>
+      <div class="counter-label">분이 사전 등록하셨어요</div>
       <button class="btn btn-primary btn-lg" style="margin-top:20px" onclick="openModal()">사전 등록하기</button>
     </div>
   </div>
@@ -369,32 +362,12 @@
 
 <footer>
   <div class="wrap">
-    <div class="fgrid">
+    <div class="fsimple">
       <div>
         <div class="fbrand">LinkVault</div>
-        <p>흩어진 링크를 가치 있는 지식으로 보관하는 금고.</p>
+        <p>흩어진 링크를 모아 진짜 내 지식으로.</p>
       </div>
-      <div>
-        <h4>제품</h4>
-        <a href="#features">기능</a>
-        <a href="#how">작동 방식</a>
-        <a href="#">로드맵</a>
-      </div>
-      <div>
-        <h4>회사</h4>
-        <a href="#">소개</a>
-        <a href="#">블로그</a>
-        <a href="#">문의하기</a>
-      </div>
-      <div>
-        <h4>법적 고지</h4>
-        <a href="#">개인정보처리방침</a>
-        <a href="#">이용약관</a>
-      </div>
-    </div>
-    <div class="fbottom">
-      <span>© 2026 LinkVault. All rights reserved.</span>
-      <span>Where scattered links become a knowledge vault.</span>
+      <span class="fcopy">© 2026 LinkVault</span>
     </div>
   </div>
 </footer>
@@ -405,7 +378,7 @@
       <button class="mclose" onclick="closeModal()" aria-label="닫기">✕</button>
       <div id="formView">
         <h3>LinkVault 사전 등록</h3>
-        <p class="msub">출시 소식과 함께 프리미엄 3개월 무료 혜택을 가장 먼저 받아보세요.</p>
+        <p class="msub">출시 소식이 준비되면 가장 먼저 메일로 알려드릴게요.</p>
         <form onsubmit="return modalSubmit(event)">
           <div class="field">
             <label for="mEmail">이메일</label>
@@ -423,12 +396,12 @@
           <p class="errmsg" id="errMsg"></p>
           <button type="submit" class="btn btn-primary" id="submitBtn">사전 등록 완료하기</button>
         </form>
-        <p class="logmsg">정식 출시 전까지 등록 정보는 안전하게 보관됩니다.</p>
+        <p class="logmsg">입력하신 정보는 출시 안내 외 다른 용도로 사용되지 않아요.</p>
       </div>
       <div id="successView" class="success" style="display:none">
         <div class="check">✓</div>
-        <h3>등록이 완료됐어요!</h3>
-        <p>정식 출시 소식을 가장 먼저 메일로 보내드릴게요.<br>프리미엄 3개월 무료 혜택이 함께 적용됩니다.</p>
+        <h3>등록 완료!</h3>
+        <p>출시 소식이 준비되면 가장 먼저 메일로 알려드릴게요.</p>
         <button class="btn btn-secondary" style="margin-top:24px;width:100%;padding:14px" onclick="closeModal()">닫기</button>
       </div>
     </div>
@@ -440,8 +413,8 @@
 <script>
   // ====== Supabase 설정 (배포 전 본인 값으로 교체하세요) ======
   // Supabase 대시보드 → Project Settings → API 에서 확인 가능합니다.
-  const SUPABASE_URL = 'https://guhbnoriucuceoibhspw.supabase.co';      // 예: https://abcdxyz.supabase.co
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1aGJub3JpdWN1Y2VvaWJoc3B3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MjQ3NjcsImV4cCI6MjA5NTAwMDc2N30.oMRkk4WgTwvWWHJf_-cUUfg268iini6G-i6QMJI92CE';    // anon public 키 (브라우저 노출 OK)
+  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';      // 예: https://abcdxyz.supabase.co
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';    // anon public 키 (브라우저 노출 OK)
   // ===========================================================
 
   let supabaseClient = null;
