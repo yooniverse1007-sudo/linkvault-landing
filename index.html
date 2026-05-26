@@ -164,41 +164,18 @@
   .section-sub{font-size:18px;color:var(--mute);margin-top:18px;max-width:560px;line-height:1.55}
 
   .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
-  .fcard{background:var(--canvas);border-radius:var(--r-md);padding:28px;min-height:230px}
-  .fcard:nth-child(even){background:var(--surface-card)}
+  .fcard{background:var(--canvas);border-radius:var(--r-md);padding:32px}
+  .fcard:nth-child(2){background:var(--surface-card)}
   .ficon{
     width:48px;height:48px;border-radius:var(--r-md);background:var(--surface-card);
     display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:22px;
   }
-  .fcard:nth-child(even) .ficon{background:var(--canvas)}
+  .fcard:nth-child(2) .ficon{background:var(--canvas)}
   .fcard h3{
     font-family:var(--display);font-weight:700;font-size:20px;
     color:var(--ink);margin-bottom:10px;letter-spacing:-.3px;
   }
   .fcard p{font-size:15px;color:var(--mute);line-height:1.6}
-
-  .notion-flow{
-    display:grid;grid-template-columns:.85fr 1.15fr;gap:16px;margin-top:16px;
-    background:var(--surface-dark);border-radius:var(--r-lg);padding:16px;color:var(--on-dark);
-  }
-  .capture-panel,.database-panel{background:#fff;color:var(--ink);border-radius:var(--r-md);padding:20px}
-  .panel-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-  .panel-title{font-weight:800;font-size:14px;color:var(--ink)}
-  .panel-badge{font-size:12px;font-weight:700;color:var(--primary);background:#ffe5ea;border-radius:var(--r-full);padding:6px 10px}
-  .capture-preview{border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;background:var(--surface-soft)}
-  .capture-bar{display:flex;gap:5px;background:var(--surface-card);padding:10px;border-bottom:1px solid var(--hairline)}
-  .capture-bar span{width:7px;height:7px;border-radius:var(--r-full);background:var(--stone)}
-  .capture-body{padding:18px}
-  .capture-body strong{display:block;font-family:var(--display);font-size:21px;line-height:1.2;margin-bottom:10px}
-  .capture-body p{font-size:14px;color:var(--mute);line-height:1.55}
-  .property-list{display:grid;gap:10px}
-  .property-row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;font-size:14px}
-  .property-row span:first-child{color:var(--mute);font-weight:700}
-  .chipline{display:flex;gap:6px;flex-wrap:wrap}
-  .chip{display:inline-flex;align-items:center;border-radius:var(--r-full);background:var(--surface-card);padding:6px 10px;font-size:12px;font-weight:700;color:var(--ink-soft)}
-  .chip.red{background:#ffe5ea;color:var(--primary)}
-  .chip.green{background:var(--success-pale);color:var(--success-deep)}
-  .upload-strip{margin-top:16px;border:1px dashed var(--stone);border-radius:var(--r-md);padding:12px;color:var(--mute);font-size:13px;font-weight:600}
 
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
   .step{padding:32px;background:var(--surface-card);border-radius:var(--r-md)}
@@ -266,14 +243,12 @@
   .success h3{margin-bottom:10px}
   .success p{font-size:15px;color:var(--mute);line-height:1.55}
 
-  @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} .notion-flow{grid-template-columns:1fr} }
+  @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} }
   @media (max-width:768px){
     .hero{grid-template-columns:1fr;gap:40px}
     h1{font-size:44px} h2,.cta-strip h2{font-size:32px}
     h2 .nowrap{white-space:normal}
     .features,.steps{grid-template-columns:1fr}
-    .fcard{min-height:auto}
-    .property-row{grid-template-columns:1fr;gap:6px}
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
     .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
@@ -324,83 +299,24 @@
 
 <section id="features">
   <div class="wrap">
-    <div class="eyebrow">Save the Web to Notion</div>
-    <h2>웹에서 본 모든 것을<br><span class="nowrap">Notion 데이터베이스로 바로 보냅니다.</span></h2>
-    <p class="section-sub">LinkVault는 Save to Notion처럼 브라우저에서 저장하고, 속성을 채우고, 필요한 장면과 하이라이트까지 함께 보관하는 지식 수집 워크플로우를 만듭니다.</p>
+    <div class="eyebrow">왜 LinkVault인가</div>
+    <h2>저장만 하는 도구는 많습니다.<br><span class="nowrap">다시 꺼내 쓰게 만드는 도구는 드뭅니다.</span></h2>
+    <p class="section-sub">LinkVault는 단순 북마크가 아니라, 모아둔 콘텐츠가 진짜 내 지식이 되도록 돕습니다.</p>
     <div class="features">
       <div class="fcard">
-        <div class="ficon">💾</div>
-        <h3>어떤 콘텐츠든 저장</h3>
-        <p>아티클, 이메일, 트윗, YouTube 영상, LinkedIn 포스트, 레시피까지 나중에 읽을 자료를 한 번에 저장합니다.</p>
+        <div class="ficon">📥</div>
+        <h3>한 번의 공유로 저장</h3>
+        <p>어떤 앱이든 '공유하기'만 누르면 끝. PC에서는 브라우저 익스텐션 한 번 클릭이면 됩니다.</p>
       </div>
       <div class="fcard">
-        <div class="ficon">🏷️</div>
-        <h3>DB 속성까지 입력</h3>
-        <p>태그, 관계형 속성, 체크박스, 상태값을 확장 프로그램 안에서 바로 채워 Notion 정리 시간을 줄입니다.</p>
+        <div class="ficon">✨</div>
+        <h3>AI가 알아서 정리</h3>
+        <p>저장하는 순간 AI가 요약하고, 태그를 달고, 비슷한 콘텐츠끼리 묶어줍니다. 정리할 일이 없어집니다.</p>
       </div>
       <div class="fcard">
-        <div class="ficon">📸</div>
-        <h3>스크린샷과 이미지 업로드</h3>
-        <p>웹페이지 일부를 캡처하거나 이미지 후보를 골라 콘텐츠와 함께 Notion 페이지에 첨부합니다.</p>
-      </div>
-      <div class="fcard">
-        <div class="ficon">✍️</div>
-        <h3>웹에서 바로 하이라이트</h3>
-        <p>읽는 중 중요한 문장을 드래그하면 하이라이트가 원문 링크, 메모와 함께 Notion으로 전송됩니다.</p>
-      </div>
-      <div class="fcard">
-        <div class="ficon">🧠</div>
-        <h3>페이지 데이터 자동 매핑</h3>
-        <p>게시일, 작성자, 플랫폼, 썸네일 같은 메타데이터를 감지해 데이터베이스 속성에 자동으로 연결합니다.</p>
-      </div>
-      <div class="fcard">
-        <div class="ficon">👑</div>
-        <h3>용도별 저장 폼</h3>
-        <p>업무 리서치, 개인 독서, 레시피, 콘텐츠 아이디어처럼 목적에 맞는 폼을 만들어 다른 DB로 저장합니다.</p>
-      </div>
-    </div>
-    <div class="notion-flow" aria-label="LinkVault Notion 저장 흐름 미리보기">
-      <div class="capture-panel">
-        <div class="panel-top">
-          <div class="panel-title">Browser capture</div>
-          <div class="panel-badge">1-click save</div>
-        </div>
-        <div class="capture-preview">
-          <div class="capture-bar"><span></span><span></span><span></span></div>
-          <div class="capture-body">
-            <strong>How AI search changes knowledge work</strong>
-            <p>선택한 문장, 대표 이미지, 원문 URL을 함께 묶어 Notion에 보낼 준비가 끝났습니다.</p>
-          </div>
-        </div>
-        <div class="upload-strip">+ Screenshot selected · 2 highlights · 1 image</div>
-      </div>
-      <div class="database-panel">
-        <div class="panel-top">
-          <div class="panel-title">Notion database properties</div>
-          <div class="panel-badge">Auto mapped</div>
-        </div>
-        <div class="property-list">
-          <div class="property-row">
-            <span>Tags</span>
-            <div class="chipline"><span class="chip red">AI</span><span class="chip">Research</span><span class="chip">Search</span></div>
-          </div>
-          <div class="property-row">
-            <span>Status</span>
-            <div class="chipline"><span class="chip green">Read later</span><span class="chip">Newsletter</span></div>
-          </div>
-          <div class="property-row">
-            <span>Author</span>
-            <div>Sarah Chen</div>
-          </div>
-          <div class="property-row">
-            <span>Published</span>
-            <div>May 25, 2026</div>
-          </div>
-          <div class="property-row">
-            <span>Workspace</span>
-            <div>Product research / AI tools</div>
-          </div>
-        </div>
+        <div class="ficon">🔍</div>
+        <h3>의미로 찾는 검색</h3>
+        <p>"예전에 봤던 그 마케팅 글" — 정확한 단어가 기억나지 않아도 찾아냅니다. 매주 다이제스트로도 다시 만나요.</p>
       </div>
     </div>
   </div>
