@@ -177,6 +177,43 @@
   }
   .fcard p{font-size:15px;color:var(--mute);line-height:1.6}
 
+  .notion-mock{
+    display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:48px;
+    background:var(--surface-dark);border-radius:var(--r-lg);padding:16px;
+  }
+  .extension-card,.notion-card{
+    background:var(--canvas);border-radius:var(--r-md);padding:20px;color:var(--ink);
+  }
+  .mock-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .mock-title{font-weight:800;font-size:14px;color:var(--ink)}
+  .mock-badge{
+    background:#ffe5ea;color:var(--primary);border-radius:var(--r-full);
+    padding:6px 10px;font-size:12px;font-weight:800;
+  }
+  .save-target{
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:14px;
+    background:var(--surface-soft);margin-bottom:14px;
+  }
+  .save-target strong{display:block;font-family:var(--display);font-size:18px;color:var(--ink);line-height:1.25;margin-bottom:8px}
+  .save-target p{font-size:13px;color:var(--mute);line-height:1.5}
+  .form-grid{display:grid;gap:10px}
+  .mock-field{border:1px solid var(--hairline);border-radius:var(--r-md);padding:12px;background:var(--canvas)}
+  .mock-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:800;color:var(--ash);margin-bottom:7px}
+  .chipline{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;border-radius:var(--r-full);background:var(--surface-card);padding:6px 10px;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .chip.red{background:#ffe5ea;color:var(--primary)}
+  .chip.green{background:var(--success-pale);color:var(--success-deep)}
+  .mock-btn{margin-top:14px;width:100%;border:none;border-radius:var(--r-md);background:var(--primary);color:#fff;font-weight:800;padding:13px 16px}
+  .notion-table{display:grid;gap:8px}
+  .notion-row{
+    display:grid;grid-template-columns:1.2fr .9fr .9fr .8fr;gap:8px;align-items:center;
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:10px 12px;font-size:13px;
+  }
+  .notion-row.header{background:var(--surface-card);font-weight:800;color:var(--mute)}
+  .mock-note{font-size:13px;color:var(--stone);line-height:1.55;margin-top:14px}
+  .mock-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .mock-action{background:var(--surface-card);border-radius:var(--r-md);padding:12px;font-size:13px;font-weight:700;color:var(--ink-soft)}
+
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
   .step{padding:32px;background:var(--surface-card);border-radius:var(--r-md)}
   .step .n{
@@ -248,7 +285,9 @@
     .hero{grid-template-columns:1fr;gap:40px}
     h1{font-size:44px} h2,.cta-strip h2{font-size:32px}
     h2 .nowrap{white-space:normal}
-    .features,.steps{grid-template-columns:1fr}
+    .features,.steps,.notion-mock{grid-template-columns:1fr}
+    .notion-row{grid-template-columns:1fr}
+    .mock-actions{grid-template-columns:1fr}
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
     .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
@@ -317,6 +356,72 @@
         <div class="ficon">🔍</div>
         <h3>의미로 찾는 검색</h3>
         <p>"예전에 봤던 그 마케팅 글" — 정확한 단어가 기억나지 않아도 찾아냅니다. 매주 다이제스트로도 다시 만나요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="notion-save">
+  <div class="wrap">
+    <div class="eyebrow">기능 Mock-up</div>
+    <h2>Save to Notion처럼,<br><span class="nowrap">저장 순간에 DB까지 채웁니다.</span></h2>
+    <p class="section-sub">랜딩 페이지 안에서 실제 제품이 어떻게 동작할지 보여주는 기능 데모입니다. 기존 디자인 흐름은 유지하고, 확장 프로그램에서 Notion으로 저장되는 경험만 추가했습니다.</p>
+
+    <div class="notion-mock" aria-label="Save to Notion style feature mock-up">
+      <div class="extension-card">
+        <div class="mock-head">
+          <div class="mock-title">LinkVault Extension</div>
+          <div class="mock-badge">Save page</div>
+        </div>
+        <div class="save-target">
+          <strong>How AI teams collect useful research</strong>
+          <p>웹 아티클, 이메일, 트윗, YouTube 영상, LinkedIn 포스트, 레시피를 나중에 읽을 수 있도록 저장합니다.</p>
+        </div>
+        <div class="form-grid">
+          <div class="mock-field">
+            <div class="mock-label">Database</div>
+            <div>Research Inbox</div>
+          </div>
+          <div class="mock-field">
+            <div class="mock-label">Properties</div>
+            <div class="chipline"><span class="chip red">AI</span><span class="chip">Article</span><span class="chip green">Read later</span></div>
+          </div>
+          <div class="mock-field">
+            <div class="mock-label">Auto mapped</div>
+            <div>Author, published date, source URL, thumbnail</div>
+          </div>
+        </div>
+        <button class="mock-btn" type="button">Save to Notion</button>
+      </div>
+
+      <div class="notion-card">
+        <div class="mock-head">
+          <div class="mock-title">Notion database preview</div>
+          <div class="mock-badge">Mapped</div>
+        </div>
+        <div class="notion-table">
+          <div class="notion-row header">
+            <div>Name</div><div>Tags</div><div>Status</div><div>Assets</div>
+          </div>
+          <div class="notion-row">
+            <div>AI teams collect useful research</div>
+            <div><span class="chip red">AI</span></div>
+            <div><span class="chip green">Read later</span></div>
+            <div>2 highlights</div>
+          </div>
+          <div class="notion-row">
+            <div>LinkedIn market signal</div>
+            <div><span class="chip">LinkedIn</span></div>
+            <div><span class="chip">Work</span></div>
+            <div>1 image</div>
+          </div>
+        </div>
+        <div class="mock-actions">
+          <div class="mock-action">📸 Screenshot upload</div>
+          <div class="mock-action">✍️ Web highlights</div>
+          <div class="mock-action">👑 Custom forms</div>
+        </div>
+        <p class="mock-note">이 섹션은 실제 저장 기능을 설명하는 mock-up입니다. 확장 프로그램에서 태그, 관계형 속성, 체크박스 같은 Notion DB 속성을 바로 채우고, 웹페이지의 작성자/게시일 같은 데이터를 자동 매핑하는 흐름을 보여줍니다.</p>
       </div>
     </div>
   </div>
