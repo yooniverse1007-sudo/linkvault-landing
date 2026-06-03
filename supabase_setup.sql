@@ -28,3 +28,55 @@ create policy "anyone can join waitlist"
 
 -- 확인용: 정상 생성되었는지 조회
 -- select * from public.waitlist order by created_at desc;
+
+-- ============================================================
+-- Optional: LinkVault app data tables for YouTube playlist import
+-- Supabase Auth users can connect YouTube and store imported videos.
+-- ============================================================
+
+create table if not exists public.youtube_connections (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references auth.users(id) on delete cascade,
+  google_subject    text,
+  channel_title     text,
+  connected_at      timestamptz not null default now(),
+  unique(user_id)
+);
+
+create table if not exists public.saved_youtube_videos (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  playlist_id     text not null,
+  video_id        text not null,
+  title           text not null,
+  channel_title   text,
+  thumbnail_url   text,
+  source_url      text not null,
+  summary         text,
+  tags            text[] not null default '{}',
+  saved_at        timestamptz not null default now(),
+  unique(user_id, video_id)
+);
+
+alter table public.youtube_connections enable row level security;
+alter table public.saved_youtube_videos enable row level security;
+
+create policy "users can read own youtube connection"
+  on public.youtube_connections
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "users can upsert own youtube connection"
+  on public.youtube_connections
+  for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "users can manage own saved youtube videos"
+  on public.saved_youtube_videos
+  for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

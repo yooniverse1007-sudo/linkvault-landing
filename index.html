@@ -214,6 +214,50 @@
   .mock-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
   .mock-action{background:var(--surface-card);border-radius:var(--r-md);padding:12px;font-size:13px;font-weight:700;color:var(--ink-soft)}
 
+  .youtube-connect{
+    display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:48px;
+  }
+  .account-panel,.library-panel{
+    background:var(--canvas);border-radius:var(--r-md);padding:24px;
+  }
+  .account-panel{background:var(--surface-card)}
+  .mini-form{display:grid;gap:10px;margin-top:20px}
+  .mini-form input,.mini-form select{
+    width:100%;font-family:var(--text);font-size:15px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:12px 14px;color:var(--ink);outline:none;
+  }
+  .mini-form input:focus,.mini-form select:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .connect-stack{display:grid;gap:10px;margin-top:18px}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-full);
+    background:var(--canvas);color:var(--mute);font-size:13px;font-weight:800;padding:9px 12px;
+  }
+  .status-pill.ready{background:var(--success-pale);color:var(--success-deep)}
+  .status-dot{width:8px;height:8px;border-radius:var(--r-full);background:var(--ash)}
+  .status-pill.ready .status-dot{background:var(--success-deep)}
+  .policy-note{
+    margin-top:16px;border:1px solid var(--hairline);border-radius:var(--r-md);
+    padding:12px;color:var(--mute);font-size:13px;line-height:1.55;background:var(--canvas);
+  }
+  .library-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .video-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .video-card{border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;background:var(--surface-soft)}
+  .thumb{
+    height:118px;display:flex;align-items:flex-end;padding:12px;color:#fff;
+    font-family:var(--display);font-weight:800;font-size:15px;line-height:1.2;
+  }
+  .thumb.one{background:linear-gradient(150deg,#e60023,#7e238b)}
+  .thumb.two{background:linear-gradient(150deg,#262622,#617bff)}
+  .thumb.three{background:linear-gradient(150deg,#103c25,#4CAF7D)}
+  .video-meta{padding:12px}
+  .video-meta h3{font-family:var(--display);font-size:15px;color:var(--ink);line-height:1.25;margin-bottom:8px}
+  .video-meta p{font-size:13px;color:var(--mute);line-height:1.45}
+  .import-summary{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:16px;border-radius:var(--r-md);background:var(--surface-card);padding:14px;
+    color:var(--ink);font-weight:700;
+  }
+
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
   .step{padding:32px;background:var(--surface-card);border-radius:var(--r-md)}
   .step .n{
@@ -285,9 +329,11 @@
     .hero{grid-template-columns:1fr;gap:40px}
     h1{font-size:44px} h2,.cta-strip h2{font-size:32px}
     h2 .nowrap{white-space:normal}
-    .features,.steps,.notion-mock{grid-template-columns:1fr}
+    .features,.steps,.notion-mock,.youtube-connect{grid-template-columns:1fr}
     .notion-row{grid-template-columns:1fr}
     .mock-actions{grid-template-columns:1fr}
+    .library-head,.import-summary{flex-direction:column;align-items:flex-start}
+    .video-grid{grid-template-columns:1fr}
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
     .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
@@ -427,6 +473,76 @@
   </div>
 </section>
 
+<section id="youtube-sync">
+  <div class="wrap">
+    <div class="eyebrow">YouTube 연동</div>
+    <h2>로그인하고, YouTube playlist를<br><span class="nowrap">LinkVault로 가져옵니다.</span></h2>
+    <p class="section-sub">공식 API로 접근 가능한 사용자의 일반 재생목록을 가져오는 흐름입니다. YouTube의 “나중에 보기” 목록은 API 제한 때문에 직접 가져오지 않고, 사용자가 만든 playlist를 LinkVault Inbox처럼 쓰도록 안내합니다.</p>
+
+    <div class="youtube-connect" aria-label="YouTube playlist import flow">
+      <div class="account-panel">
+        <div class="mock-head">
+          <div class="mock-title">Account setup</div>
+          <div class="mock-badge">Demo flow</div>
+        </div>
+        <div class="status-pill" id="authStatus"><span class="status-dot"></span>Not signed in</div>
+        <div class="mini-form">
+          <input type="email" id="demoAccountEmail" placeholder="you@example.com">
+          <button class="btn btn-primary" type="button" onclick="demoSignIn()">Sign up / Log in</button>
+        </div>
+        <div class="connect-stack">
+          <div class="status-pill" id="youtubeStatus"><span class="status-dot"></span>YouTube not connected</div>
+          <button class="btn btn-secondary" type="button" onclick="demoConnectYouTube()">Connect YouTube</button>
+          <select id="playlistSelect" aria-label="YouTube playlist 선택">
+            <option value="research">LinkVault Inbox - Research videos</option>
+            <option value="learning">Product learning queue</option>
+            <option value="recipes">Weekend cooking ideas</option>
+          </select>
+          <button class="btn btn-primary" type="button" onclick="demoImportPlaylist()">Import playlist</button>
+        </div>
+        <div class="policy-note">Watch later는 YouTube Data API에서 목록 조회가 제한됩니다. 대신 직접 만든 playlist를 선택하면 OAuth 권한으로 영상 목록을 가져올 수 있습니다.</div>
+      </div>
+
+      <div class="library-panel">
+        <div class="library-head">
+          <div>
+            <div class="mock-title">Imported videos</div>
+            <p class="section-sub" style="margin-top:8px;font-size:15px">가져온 영상은 요약, 태그, 출처와 함께 LinkVault 콘텐츠 라이브러리에 저장됩니다.</p>
+          </div>
+          <div class="mock-badge" id="importBadge">Waiting</div>
+        </div>
+        <div class="video-grid" id="videoGrid">
+          <div class="video-card">
+            <div class="thumb one">AI research workflow</div>
+            <div class="video-meta">
+              <h3>Build a better research inbox</h3>
+              <p>YouTube · 18 min · Tags: Research, AI</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="thumb two">Notion database setup</div>
+            <div class="video-meta">
+              <h3>Design a Notion knowledge base</h3>
+              <p>YouTube · 12 min · Tags: Notion, PKM</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="thumb three">Saved for later</div>
+            <div class="video-meta">
+              <h3>Turn video queues into notes</h3>
+              <p>YouTube · 9 min · Tags: Learning</p>
+            </div>
+          </div>
+        </div>
+        <div class="import-summary">
+          <span id="importSummary">Sign in and connect YouTube to preview playlist import.</span>
+          <button class="btn btn-secondary" type="button" onclick="document.getElementById('youtube-sync').scrollIntoView({behavior:'smooth'})">View flow</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="how">
   <div class="wrap">
     <div class="eyebrow">작동 방식</div>
@@ -552,6 +668,32 @@
     const el=document.getElementById('errMsg');
     el.textContent=msg;
     el.classList.add('show');
+  }
+  function setDemoStatus(id, text, ready=false){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.innerHTML='<span class="status-dot"></span>'+text;
+    el.classList.toggle('ready', ready);
+  }
+  function demoSignIn(){
+    const email=document.getElementById('demoAccountEmail').value.trim() || 'demo@linkvault.app';
+    setDemoStatus('authStatus', 'Signed in as '+email, true);
+    document.getElementById('importSummary').textContent='Account ready. Connect YouTube to choose a playlist.';
+  }
+  function demoConnectYouTube(){
+    const authReady=document.getElementById('authStatus').classList.contains('ready');
+    if(!authReady) demoSignIn();
+    setDemoStatus('youtubeStatus', 'YouTube connected', true);
+    document.getElementById('importBadge').textContent='Connected';
+    document.getElementById('importSummary').textContent='YouTube connected. Select a playlist and import videos.';
+  }
+  function demoImportPlaylist(){
+    const youtubeReady=document.getElementById('youtubeStatus').classList.contains('ready');
+    if(!youtubeReady) demoConnectYouTube();
+    const select=document.getElementById('playlistSelect');
+    const playlistName=select.options[select.selectedIndex].text;
+    document.getElementById('importBadge').textContent='3 videos imported';
+    document.getElementById('importSummary').textContent='Imported from '+playlistName+' into LinkVault Library.';
   }
   function heroSubmit(e){
     e.preventDefault();
