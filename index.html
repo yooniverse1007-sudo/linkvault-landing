@@ -151,6 +151,36 @@
   .ph.e{height:220px;background:linear-gradient(150deg,#617bff,#435ee5)}
   .ph.f{height:260px;background:linear-gradient(150deg,#33332e,#62625b)}
 
+  .hero-product{
+    background:var(--canvas);border:1px solid var(--hairline);
+    border-radius:var(--r-lg);padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.08);
+  }
+  .hero-product-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .hero-product-title{font-family:var(--display);font-size:18px;font-weight:800;color:var(--ink)}
+  .hero-product-badge{background:var(--success-pale);color:var(--success-deep);border-radius:var(--r-full);padding:7px 11px;font-size:12px;font-weight:800}
+  .hero-select{
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:14px 16px;
+    background:var(--surface-soft);margin-bottom:14px;
+  }
+  .hero-select span{display:block;font-size:12px;color:var(--ash);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .hero-select strong{display:block;color:var(--ink);font-size:16px}
+  .hero-import{
+    border:none;border-radius:var(--r-md);background:var(--primary);color:#fff;
+    font-weight:800;font-size:15px;padding:14px 16px;width:100%;margin-bottom:16px;
+  }
+  .hero-video-list{display:grid;gap:10px}
+  .hero-video{
+    display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;
+    border:1px solid var(--hairline-soft);border-radius:var(--r-md);padding:10px;background:var(--surface-soft);
+  }
+  .hero-thumb{height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px}
+  .hero-thumb.red{background:linear-gradient(150deg,#e60023,#7e238b)}
+  .hero-thumb.dark{background:linear-gradient(150deg,#262622,#617bff)}
+  .hero-thumb.green{background:linear-gradient(150deg,#103c25,#4CAF7D)}
+  .hero-video strong{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+  .hero-video span{display:block;color:var(--mute);font-size:12px}
+  .hero-product-note{font-size:13px;color:var(--mute);line-height:1.5;margin-top:14px}
+
   section{padding:var(--s-section) 0}
   .eyebrow{
     font-weight:700;font-size:14px;color:var(--primary);
@@ -370,13 +400,40 @@
           <button type="submit" class="btn btn-primary btn-lg">먼저 받아보기</button>
         </form>
       </div>
-      <div class="masonry" aria-hidden="true">
-        <div class="pin"><span class="src">YouTube</span><div class="ph b">3시간 강의도 5분 요약으로</div></div>
-        <div class="pin"><span class="src">Article</span><div class="ph d">읽다 만 아티클, 자동 태그</div></div>
-        <div class="pin"><span class="src">LinkedIn</span><div class="ph e">스크랩한 인사이트 한 곳에</div></div>
-        <div class="pin"><span class="src">Instagram</span><div class="ph a">저장한 레퍼런스 모음</div></div>
-        <div class="pin"><span class="src">Web</span><div class="ph c">키워드 없이 의미로 검색</div></div>
-        <div class="pin"><span class="src">Newsletter</span><div class="ph f">주간 다이제스트로 복습</div></div>
+      <div class="hero-product" aria-label="LinkVault 제품 미리보기">
+        <div class="hero-product-top">
+          <div class="hero-product-title">LinkVault 라이브러리</div>
+          <div class="hero-product-badge">YouTube 연결됨</div>
+        </div>
+        <div class="hero-select">
+          <span>재생목록</span>
+          <strong>LinkVault Inbox - 리서치 영상</strong>
+        </div>
+        <button class="hero-import" type="button" onclick="document.getElementById('youtube-sync').scrollIntoView({behavior:'smooth'})">영상 12개 가져오기</button>
+        <div class="hero-video-list">
+          <div class="hero-video">
+            <div class="hero-thumb red">YT</div>
+            <div>
+              <strong>AI 리서치 워크플로우</strong>
+              <span>18분 · 요약 완료 · 태그 3개</span>
+            </div>
+          </div>
+          <div class="hero-video">
+            <div class="hero-thumb dark">노트</div>
+            <div>
+              <strong>Notion 지식 베이스 만들기</strong>
+              <span>12분 · 나중에 읽기 · 출처 저장</span>
+            </div>
+          </div>
+          <div class="hero-video">
+            <div class="hero-thumb green">학습</div>
+            <div>
+              <strong>제품 학습 큐 정리하기</strong>
+              <span>9분 · 핵심 문장 5개 추출</span>
+            </div>
+          </div>
+        </div>
+        <p class="hero-product-note">“나중에 보기” 대신 사용자가 만든 playlist를 연결해 영상 목록을 안전하게 가져오는 제품 미리보기입니다.</p>
       </div>
     </div>
   </div>
