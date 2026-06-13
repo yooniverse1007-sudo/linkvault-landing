@@ -1004,9 +1004,11 @@
 
   function normalizeWords(text){
     const stopwords = new Set([
-      'the','and','for','with','from','this','that','you','your','are','was','were','have','has','how','what','why',
+      'the','and','for','with','from','this','that','you','your','are','was','were','have','has','had','how','what','why',
+      'can','will','into','about','using','use','make','made','build','new','best','part','full','video','post','page',
       '으로','에서','하는','하고','있는','없는','것을','대한','그리고','하지만','영상','콘텐츠','링크','저장','페이지',
-      'youtube','youtu','https','http','www','com','watch'
+      '관련','바로','현재','선택','텍스트','원문','보기','만들기','방법','하는법','입니다','합니다','합니다',
+      'youtube','youtu','linkedin','instagram','https','http','www','com','watch'
     ]);
     return (text || '')
       .toLowerCase()
@@ -1014,19 +1016,50 @@
       .replace(/[^\p{L}\p{N}\s]/gu, ' ')
       .split(/\s+/)
       .map(word => word.trim())
-      .filter(word => word.length > 1 && !stopwords.has(word));
+      .map(word => {
+        if(/[가-힣]/.test(word) && word.length > 2){
+          return word.replace(/(은|는|이|가|을|를|에|에서|으로|로|와|과|도|만|부터|까지|에게|처럼|보다|의)$/u, '');
+        }
+        return word;
+      })
+      .filter(word => word.length > 1 && !/^\d+$/.test(word) && !stopwords.has(word));
+  }
+
+  function addCandidate(scores, term, weight){
+    const cleaned = term.trim();
+    if(cleaned.length < 2 || cleaned.length > 48) return;
+    scores.set(cleaned, (scores.get(cleaned) || 0) + weight);
+  }
+
+  function scoreConcepts(text, baseWeight, scores){
+    const words = normalizeWords(text).slice(0, 120);
+    words.forEach(word => addCandidate(scores, word, baseWeight));
+    for(let size = 2; size <= 3; size++){
+      for(let i = 0; i <= words.length - size; i++){
+        const phrase = words.slice(i, i + size);
+        if(phrase.some(word => word.length < 2)) continue;
+        addCandidate(scores, phrase.join(' '), baseWeight * (size + 1.5));
+      }
+    }
+    return words;
   }
 
   function extractKeywords(item){
-    const source = `${item.title || ''} ${item.selected_text || ''} ${item.source_platform || ''}`;
-    const counts = new Map();
-    normalizeWords(source).forEach(word => counts.set(word, (counts.get(word) || 0) + 1));
-    const platform = item.source_platform || detectPlatform(item.source_url);
-    if(platform && platform !== 'web') counts.set(platform, (counts.get(platform) || 0) + 2);
-    return [...counts.entries()]
+    const scores = new Map();
+    scoreConcepts(item.title || '', 3, scores);
+    scoreConcepts(item.selected_text || '', 1.4, scores);
+    const keywords = [...scores.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .slice(0, 5)
+      .filter(([term]) => !term.includes('http'))
+      .slice(0, 6)
       .map(([word]) => word);
+    return keywords.length ? keywords : [item.source_platform || detectPlatform(item.source_url) || 'web'];
+  }
+
+  function extractRelationTerms(item){
+    const titleWords = scoreConcepts(item.title || '', 2, new Map());
+    const textWords = scoreConcepts(item.selected_text || '', 1, new Map());
+    return [...new Set([...titleWords, ...textWords])].filter(word => word.length > 2);
   }
 
   function makeSummary(item){
@@ -1055,7 +1088,8 @@
     return items.map(item => ({
       ...item,
       summary: makeSummary(item),
-      keywords: extractKeywords(item)
+      keywords: extractKeywords(item),
+      relationTerms: extractRelationTerms(item)
     }));
   }
 
@@ -1065,13 +1099,16 @@
       for(let j = i + 1; j < items.length; j++){
         const a = items[i];
         const b = items[j];
-        const shared = a.keywords.filter(keyword => b.keywords.includes(keyword));
-        if(shared.length){
+        const exactShared = a.keywords.filter(keyword => b.keywords.includes(keyword));
+        const termShared = a.relationTerms.filter(term => b.relationTerms.includes(term));
+        const shared = [...new Set([...exactShared, ...termShared])].slice(0, 5);
+        const strongShared = shared.filter(term => term.includes(' ') || term.length > 3);
+        if(exactShared.length || strongShared.length >= 2){
           relations.push({
             source: i,
             target: j,
             shared,
-            score: shared.length,
+            score: exactShared.length * 3 + strongShared.length,
             a,
             b
           });
