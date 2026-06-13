@@ -978,6 +978,31 @@
     document.getElementById('saveSuccessView').style.display='block';
   }
 
+  async function analyzeYouTubeLink(url, title){
+    try{
+      const response = await fetch('/api/analyze-youtube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url, title })
+      });
+      if(!response.ok){
+        console.warn('YouTube analysis failed', await response.text());
+        return null;
+      }
+      const data = await response.json();
+      if(data.error){
+        console.warn('YouTube analysis error', data.error);
+        return null;
+      }
+      return data;
+    }catch(err){
+      console.warn('YouTube analysis unavailable', err);
+      return null;
+    }
+  }
+
   function setSavedListMessage(message){
     const list = document.getElementById('savedList');
     if(!list) return;
@@ -1040,6 +1065,9 @@
   }
 
   function extractKeywords(item){
+    if(Array.isArray(item.keywords) && item.keywords.length){
+      return item.keywords.map(String).filter(Boolean).slice(0, 10);
+    }
     const scores = new Map();
     scoreConcepts(item.title || '', 3, scores);
     scoreConcepts(item.selected_text || '', 1.4, scores);
@@ -1058,6 +1086,9 @@
   }
 
   function makeSummary(item){
+    if(item.summary){
+      return item.summary;
+    }
     const title = item.title || 'Untitled';
     const text = (item.selected_text || '').trim();
     if(text){
@@ -1303,7 +1334,7 @@
     try{
       const { data, error } = await supabaseClient
         .from('saved_links')
-        .select('id, source_url, title, selected_text, source_platform, created_at')
+        .select('*')
         .eq('owner_email', email)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -1341,15 +1372,47 @@
     btn.textContent = '저장 중...';
     try{
       localStorage.setItem('linkvault_save_email', email);
-      const { error } = await supabaseClient
+      const platform = detectPlatform(pendingSave.url);
+      let analysis = null;
+      if(platform === 'youtube'){
+        btn.textContent = '자막 분석 중...';
+        analysis = await analyzeYouTubeLink(pendingSave.url, title);
+        btn.textContent = '저장 중...';
+      }
+
+      const insertPayload = {
+        owner_email: email,
+        source_url: pendingSave.url,
+        title: title,
+        selected_text: pendingSave.text || null,
+        source_platform: platform
+      };
+      if(analysis){
+        insertPayload.summary = analysis.summary || null;
+        insertPayload.keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
+        insertPayload.topics = Array.isArray(analysis.topics) ? analysis.topics : [];
+        insertPayload.transcript_status = analysis.transcript_status || null;
+        insertPayload.transcript_excerpt = analysis.transcript_excerpt || null;
+        insertPayload.analyzed_at = new Date().toISOString();
+      }
+
+      let { error } = await supabaseClient
         .from('saved_links')
-        .insert({
-          owner_email: email,
-          source_url: pendingSave.url,
-          title: title,
-          selected_text: pendingSave.text || null,
-          source_platform: detectPlatform(pendingSave.url)
-        });
+        .insert(insertPayload);
+
+      if(error && /summary|keywords|topics|transcript|analyzed|schema cache/i.test(error.message || '')){
+        const fallbackPayload = {
+          owner_email: insertPayload.owner_email,
+          source_url: insertPayload.source_url,
+          title: insertPayload.title,
+          selected_text: insertPayload.selected_text,
+          source_platform: insertPayload.source_platform
+        };
+        const retry = await supabaseClient
+          .from('saved_links')
+          .insert(fallbackPayload);
+        error = retry.error;
+      }
 
       if(error){
         console.error(error);

@@ -120,3 +120,11 @@ create policy "anyone can read saved links"
 
 create index if not exists saved_links_owner_email_created_at_idx
   on public.saved_links (owner_email, created_at desc);
+
+alter table public.saved_links
+  add column if not exists summary text,
+  add column if not exists keywords text[] not null default '{}',
+  add column if not exists topics text[] not null default '{}',
+  add column if not exists transcript_status text,
+  add column if not exists transcript_excerpt text,
+  add column if not exists analyzed_at timestamptz;
