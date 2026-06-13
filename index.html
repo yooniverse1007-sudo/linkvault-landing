@@ -466,6 +466,8 @@
   .graph-wrap svg{display:block;width:100%;height:360px}
   .graph-edge{stroke:var(--stone);stroke-width:2;opacity:.75}
   .graph-node circle{fill:var(--canvas);stroke:var(--primary);stroke-width:3}
+  .graph-node.graph-concept circle{fill:#fff7d6;stroke:#d39b00}
+  .graph-node.graph-content circle{fill:#fff;stroke:var(--primary)}
   .graph-node text{font-size:12px;font-weight:800;fill:var(--ink);pointer-events:none}
   .graph-label{font-size:11px;fill:var(--mute)}
   .relation-list{display:grid;gap:10px;margin-top:16px}
@@ -1282,6 +1284,149 @@
       const keywords = document.createElement('span');
       keywords.textContent = `연결 개념: ${rel.shared.join(', ')}`;
       row.append(a, document.createTextNode(' ↔ '), b, document.createElement('br'), keywords);
+      relationList.appendChild(row);
+    });
+  }
+
+  function graphConceptsForItem(item){
+    const wikiConcepts = uniqueConcepts(item.wikiConcepts, 8);
+    if(wikiConcepts.length) return wikiConcepts;
+    const keywordConcepts = uniqueConcepts(item.keywords, 6);
+    if(keywordConcepts.length) return keywordConcepts;
+    return uniqueConcepts(item.relationTerms, 5);
+  }
+
+  function renderKnowledgeGraph(){
+    const panel = document.getElementById('knowledgePanel');
+    const wrap = document.getElementById('graphWrap');
+    const relationList = document.getElementById('relationList');
+    if(!panel || !wrap || !relationList) return;
+    if(!currentSavedItems.length){
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = 'block';
+    relationList.innerHTML = '';
+
+    const items = currentSavedItems.slice(0, 10);
+    const conceptMap = new Map();
+    items.forEach((item, itemIndex) => {
+      graphConceptsForItem(item).forEach(concept => {
+        const key = concept.toLowerCase();
+        if(!conceptMap.has(key)){
+          conceptMap.set(key, { label: concept, items: [] });
+        }
+        conceptMap.get(key).items.push(itemIndex);
+      });
+    });
+
+    const concepts = [...conceptMap.values()]
+      .sort((a, b) => b.items.length - a.items.length || a.label.localeCompare(b.label))
+      .slice(0, 12);
+    const conceptIndex = new Map(concepts.map((concept, index) => [concept.label.toLowerCase(), index]));
+    const edges = [];
+    items.forEach((item, itemIndex) => {
+      graphConceptsForItem(item).forEach(concept => {
+        const index = conceptIndex.get(concept.toLowerCase());
+        if(index !== undefined){
+          edges.push({ itemIndex, conceptIndex: index });
+        }
+      });
+    });
+
+    const width = 920;
+    const height = 360;
+    const itemPositions = items.map((item, index) => ({
+      x: 170,
+      y: (height / (items.length + 1)) * (index + 1),
+      item
+    }));
+    const conceptPositions = concepts.map((concept, index) => ({
+      x: 720,
+      y: (height / (concepts.length + 1)) * (index + 1),
+      concept
+    }));
+
+    wrap.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Saved content and wiki concept graph');
+
+    edges.forEach(edge => {
+      const from = itemPositions[edge.itemIndex];
+      const to = conceptPositions[edge.conceptIndex];
+      if(!from || !to) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'graph-edge');
+      line.setAttribute('x1', from.x);
+      line.setAttribute('y1', from.y);
+      line.setAttribute('x2', to.x);
+      line.setAttribute('y2', to.y);
+      svg.appendChild(line);
+    });
+
+    itemPositions.forEach(({ x, y, item }, index) => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'graph-node graph-content');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 22);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = String(index + 1);
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'graph-label');
+      label.setAttribute('x', x);
+      label.setAttribute('y', y + 42);
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = shortTitle(item.title);
+      group.append(circle, text, label);
+      svg.appendChild(group);
+    });
+
+    conceptPositions.forEach(({ x, y, concept }) => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'graph-node graph-concept');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', concept.items.length > 1 ? 26 : 21);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = String(concept.items.length);
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'graph-label');
+      label.setAttribute('x', x);
+      label.setAttribute('y', y + 42);
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = shortTitle(concept.label);
+      group.append(circle, text, label);
+      svg.appendChild(group);
+    });
+    wrap.appendChild(svg);
+
+    if(!concepts.length){
+      const empty = document.createElement('div');
+      empty.className = 'saved-empty';
+      empty.textContent = '아직 그래프로 보여줄 개념이 없습니다. 새 YouTube 영상을 저장하면 자막 요약에서 위키 개념을 생성합니다.';
+      relationList.appendChild(empty);
+      return;
+    }
+
+    concepts.slice(0, 8).forEach(concept => {
+      const row = document.createElement('div');
+      row.className = 'relation-item';
+      const title = document.createElement('strong');
+      title.textContent = `[[${concept.label}]]`;
+      const linked = document.createElement('span');
+      linked.textContent = ` 연결 콘텐츠: ${concept.items.map(index => shortTitle(items[index]?.title)).filter(Boolean).join(', ')}`;
+      row.append(title, document.createElement('br'), linked);
       relationList.appendChild(row);
     });
   }
