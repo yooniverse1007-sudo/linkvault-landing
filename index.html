@@ -1652,14 +1652,18 @@
     const ok = confirm(`삭제할까요?\n${item.title || item.source_url || 'Untitled'}`);
     if(!ok) return;
     try{
-      const email = item.owner_email || localStorage.getItem('linkvault_save_email') || '';
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from('saved_links')
         .delete()
         .eq('id', item.id)
-        .eq('owner_email', email);
+        .select('id');
       if(error){
         alert(`삭제 실패: ${error.message || 'Supabase 삭제 정책을 확인해 주세요.'}`);
+        return;
+      }
+      if(!data || !data.length){
+        alert('DB에서 실제로 삭제된 항목이 없습니다. Supabase SQL Editor에서 삭제 정책을 다시 실행해 주세요.');
+        await loadSavedLinks();
         return;
       }
       currentSavedItems = currentSavedItems.filter(saved => saved.id !== item.id);
