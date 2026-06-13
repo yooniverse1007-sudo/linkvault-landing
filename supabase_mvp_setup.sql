@@ -42,5 +42,11 @@ create policy "anyone can save a link"
     and source_url <> ''
   );
 
+create policy "anyone can read saved links"
+  on public.saved_links
+  for select
+  to anon, authenticated
+  using (true);
+
 create index if not exists saved_links_owner_email_created_at_idx
   on public.saved_links (owner_email, created_at desc);

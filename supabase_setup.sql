@@ -101,6 +101,7 @@ create table if not exists public.saved_links (
 alter table public.saved_links enable row level security;
 
 drop policy if exists "anyone can save a link" on public.saved_links;
+drop policy if exists "anyone can read saved links" on public.saved_links;
 
 create policy "anyone can save a link"
   on public.saved_links
@@ -110,6 +111,12 @@ create policy "anyone can save a link"
     owner_email <> ''
     and source_url <> ''
   );
+
+create policy "anyone can read saved links"
+  on public.saved_links
+  for select
+  to anon, authenticated
+  using (true);
 
 create index if not exists saved_links_owner_email_created_at_idx
   on public.saved_links (owner_email, created_at desc);
