@@ -1,7 +1,8 @@
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be']);
 const YOUTUBE_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36 LinkVault/1.0',
-  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
+  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+  'Cookie': 'CONSENT=YES+cb.20210328-17-p0.ko+FX+111; SOCS=CAI'
 };
 
 function json(res, status, body) {
@@ -69,34 +70,116 @@ function extractInnertubeConfig(html = '') {
     html.match(/"INNERTUBE_CONTEXT_CLIENT_VERSION":"([^"]+)"/)?.[1] ||
     html.match(/clientVersion['"]?\s*:\s*['"]([^'"]+)/)?.[1] ||
     '';
-  return { apiKey, clientVersion };
+  const visitorData =
+    html.match(/"VISITOR_DATA":"([^"]+)"/)?.[1] ||
+    html.match(/visitorData['"]?\s*:\s*['"]([^'"]+)/)?.[1] ||
+    '';
+  return { apiKey, clientVersion, visitorData };
+}
+
+function extractJsonArrayAfterMarker(html = '', marker) {
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex === -1) return null;
+  const start = html.indexOf('[', markerIndex);
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < html.length; i++) {
+    const char = html[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') inString = true;
+    if (char === '[') depth++;
+    if (char === ']') depth--;
+    if (depth === 0) {
+      try {
+        return JSON.parse(html.slice(start, i + 1));
+      } catch (_err) {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function extractCaptionTracksFromHtml(html = '') {
+  return extractJsonArrayAfterMarker(html, '"captionTracks":') || [];
 }
 
 async function fetchInnertubeTracks(videoId, html) {
-  const { apiKey, clientVersion } = extractInnertubeConfig(html);
+  const { apiKey, clientVersion, visitorData } = extractInnertubeConfig(html);
   if (!apiKey) return [];
 
-  const response = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...YOUTUBE_HEADERS
+  const clients = [
+    {
+      clientName: 'WEB',
+      clientVersion: clientVersion || '2.20240601.00.00',
+      hl: 'ko',
+      gl: 'KR'
     },
-    body: JSON.stringify({
-      context: {
-        client: {
-          clientName: 'WEB',
-          clientVersion: clientVersion || '2.20240601.00.00',
-          hl: 'ko',
-          gl: 'KR'
-        }
+    {
+      clientName: 'WEB_EMBEDDED_PLAYER',
+      clientVersion: clientVersion || '1.20240612.01.00',
+      hl: 'ko',
+      gl: 'KR'
+    },
+    {
+      clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+      clientVersion: '2.0',
+      hl: 'ko',
+      gl: 'KR'
+    },
+    {
+      clientName: 'ANDROID',
+      clientVersion: '19.09.37',
+      androidSdkVersion: 30,
+      hl: 'ko',
+      gl: 'KR'
+    }
+  ];
+
+  for (const client of clients) {
+    const response = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://www.youtube.com',
+        'Referer': `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`,
+        ...YOUTUBE_HEADERS
       },
-      videoId
-    })
-  });
-  if (!response.ok) return [];
-  const data = await response.json();
-  return data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      body: JSON.stringify({
+        context: {
+          client: {
+            ...client,
+            visitorData: visitorData || undefined
+          }
+        },
+        videoId,
+        contentCheckOk: true,
+        racyCheckOk: true,
+        playbackContext: {
+          contentPlaybackContext: {
+            html5Preference: 'HTML5_PREF_WANTS'
+          }
+        }
+      })
+    });
+    if (!response.ok) continue;
+    const data = await response.json();
+    const tracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    if (tracks.length) return tracks;
+  }
+
+  return [];
 }
 
 function chooseCaptionTrack(tracks = []) {
@@ -147,13 +230,20 @@ function parseTimedTextTrackList(xml = '', videoId) {
 }
 
 async function fetchTimedTextTracks(videoId) {
-  const listUrl = `https://www.youtube.com/api/timedtext?type=list&v=${encodeURIComponent(videoId)}`;
-  const response = await fetch(listUrl, {
-    headers: YOUTUBE_HEADERS
-  });
-  if (!response.ok) return [];
-  const xml = await response.text();
-  return parseTimedTextTrackList(xml, videoId);
+  const urls = [
+    `https://www.youtube.com/api/timedtext?type=list&v=${encodeURIComponent(videoId)}&hl=ko&gl=KR`,
+    `https://video.google.com/timedtext?type=list&v=${encodeURIComponent(videoId)}&hl=ko&gl=KR`
+  ];
+  for (const listUrl of urls) {
+    const response = await fetch(listUrl, {
+      headers: YOUTUBE_HEADERS
+    });
+    if (!response.ok) continue;
+    const xml = await response.text();
+    const tracks = parseTimedTextTrackList(xml, videoId);
+    if (tracks.length) return tracks;
+  }
+  return [];
 }
 
 function parseTranscriptJson3(data) {
@@ -171,6 +261,36 @@ function parseTranscriptJson3(data) {
   return lines;
 }
 
+function parseTranscriptXml(xml = '') {
+  const lines = [];
+  for (const match of xml.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)) {
+    const attrs = {};
+    for (const attr of match[1].matchAll(/([\w-]+)="([^"]*)"/g)) {
+      attrs[attr[1]] = decodeXmlEntities(attr[2]);
+    }
+    const text = decodeXmlEntities(match[2])
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!text) continue;
+    lines.push({
+      start: Math.floor(Number(attrs.start || 0)),
+      text
+    });
+  }
+  return lines;
+}
+
+function captionUrl(baseUrl) {
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set('fmt', 'json3');
+    return url.toString();
+  } catch (_err) {
+    return `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
+  }
+}
+
 async function fetchTranscript(videoId) {
   const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
   const page = await fetch(watchUrl, {
@@ -183,6 +303,9 @@ async function fetchTranscript(videoId) {
   const html = await page.text();
   const player = extractInitialPlayerResponse(html);
   let tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (!tracks.length) {
+    tracks = extractCaptionTracksFromHtml(html);
+  }
   if (!tracks.length) {
     tracks = await fetchInnertubeTracks(videoId, html);
   }
@@ -199,14 +322,19 @@ async function fetchTranscript(videoId) {
   }
 
   for (const track of orderedTracks) {
-    const transcriptUrl = `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
+    const transcriptUrl = captionUrl(track.baseUrl);
     const caption = await fetch(transcriptUrl, {
       headers: YOUTUBE_HEADERS
     });
     if (!caption.ok) continue;
 
-    const data = await caption.json();
-    const lines = parseTranscriptJson3(data);
+    const body = await caption.text();
+    let lines = [];
+    try {
+      lines = parseTranscriptJson3(JSON.parse(body));
+    } catch (_err) {
+      lines = parseTranscriptXml(body);
+    }
     const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
     if (transcript) {
       return {
