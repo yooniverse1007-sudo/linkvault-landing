@@ -1359,19 +1359,20 @@
     }
     const platform = item.source_platform || detectPlatform(item.source_url);
     if(platform === 'youtube'){
-      return `"${title}" 영상은 나중에 다시 볼 가치가 있어 저장된 항목입니다. 다음 단계에서 자막/메모 기반 요약을 붙이면 더 풍부해집니다.`;
+      return '아직 AI 요약이 생성되지 않았습니다. 이 영상 카드의 다시 분석 버튼을 눌러 자막 기반 요약을 생성해 주세요.';
     }
     if(platform === 'linkedin'){
-      return `"${title}" LinkedIn 게시물은 업무 인사이트나 레퍼런스로 다시 확인하기 위해 저장된 항목입니다.`;
+      return '아직 요약이 생성되지 않은 LinkedIn 게시물입니다.';
     }
-    return `"${title}" 링크는 개인 지식 DB에 보관된 자료입니다. 선택 텍스트를 함께 저장하면 더 정확한 요약이 만들어집니다.`;
+    return '아직 요약이 생성되지 않은 링크입니다.';
   }
 
   function summaryLabelFor(item){
     if(item.transcript_status === 'ok' && item.summary) return 'AI 요약';
     if(item.transcript_status === 'missing_openai_key') return '자막 미리보기';
     if(item.transcript_status && item.transcript_status !== 'ok') return '요약 대기';
-    return '요약';
+    if((item.source_platform || detectPlatform(item.source_url)) === 'youtube' && !item.summary) return '요약 필요';
+    return '요약 없음';
   }
 
   function summaryStatusText(item){
@@ -1382,6 +1383,7 @@
     if(status === 'caption_fetch_failed') return '자막 불러오기 실패';
     if(status === 'youtube_page_failed') return 'YouTube 페이지 접근 실패';
     if(status === 'empty_caption') return '빈 자막';
+    if((item.source_platform || detectPlatform(item.source_url)) === 'youtube' && !item.summary) return '아직 분석되지 않은 기존 저장 영상입니다. 다시 분석을 눌러 주세요.';
     return '';
   }
 
