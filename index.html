@@ -477,6 +477,75 @@
   }
   .relation-item strong{color:var(--ink)}
   #notion-save,#youtube-sync,.cta-strip{display:none}
+  #features,#how,footer,body>nav,body>header{display:none}
+
+  .app-shell{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    background:linear-gradient(135deg,#fff7f3 0%,#fbfbf9 48%,#f4f0ec 100%);
+  }
+  .app-sidebar{
+    position:sticky;top:0;height:100vh;
+    background:rgba(255,255,255,.86);
+    border-right:1px solid var(--hairline-soft);
+    padding:28px 20px;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .side-brand{font-family:var(--display);font-size:22px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:9px}
+  .side-mark{width:28px;height:28px;border-radius:var(--r-full);background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:900}
+  .side-nav{display:grid;gap:8px;margin-top:32px}
+  .side-link{
+    width:100%;border:none;background:transparent;color:var(--body);
+    display:flex;align-items:center;gap:10px;border-radius:var(--r-md);
+    padding:12px 14px;font-weight:800;cursor:pointer;text-align:left;
+  }
+  .side-link.active{background:#fff0f2;color:var(--primary)}
+  .side-link span{font-size:16px;width:20px;text-align:center}
+  .side-profile{background:var(--surface-soft);border:1px solid var(--hairline-soft);border-radius:var(--r-md);padding:12px;font-size:12px;color:var(--mute)}
+  .side-profile strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+  .app-main{padding:32px;min-width:0}
+  .app-page{display:none;max-width:1180px;margin:0 auto}
+  .app-page.active{display:block}
+  .app-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+  .app-title h1{font-size:42px;letter-spacing:0;line-height:1.2}
+  .app-title p{font-size:15px;color:var(--mute);margin-top:10px;line-height:1.6}
+  .icon-button{
+    width:42px;height:42px;border-radius:var(--r-full);border:1px solid var(--hairline);
+    background:var(--canvas);display:grid;place-items:center;font-weight:900;color:var(--ink);
+  }
+  .dashboard-card{
+    background:rgba(255,255,255,.9);border:1px solid var(--hairline-soft);
+    border-radius:24px;padding:32px;box-shadow:0 18px 50px rgba(0,0,0,.07);
+  }
+  .url-capture{
+    display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+    background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-md);
+    padding:12px;max-width:720px;margin-top:24px;box-shadow:0 12px 34px rgba(0,0,0,.06);
+  }
+  .url-capture input{border:none;outline:none;font-size:15px;padding:10px;background:transparent;color:var(--ink)}
+  .quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:32px}
+  .quick-card{
+    background:var(--canvas);border:1px solid var(--hairline-soft);border-radius:var(--r-md);
+    padding:14px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .quick-thumb{height:72px;border-radius:12px;background:linear-gradient(135deg,#e60023,#7e238b);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px}
+  .quick-card strong{font-size:13px;color:var(--ink);line-height:1.4}
+  .quick-card span{font-size:12px;color:var(--mute)}
+  .page-panel{background:rgba(255,255,255,.92);border:1px solid var(--hairline-soft);border-radius:24px;padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.06)}
+  .page-panel .library-panel-live,.page-panel .knowledge-panel{box-shadow:none;border:none;background:transparent;padding:0;margin:0}
+
+  @media (max-width:900px){
+    .app-shell{grid-template-columns:1fr}
+    .app-sidebar{position:static;height:auto;padding:16px;gap:16px}
+    .side-nav{grid-template-columns:repeat(4,1fr);margin-top:16px}
+    .side-link{justify-content:center;font-size:0}
+    .side-link span{font-size:18px}
+    .app-main{padding:18px}
+    .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .url-capture{grid-template-columns:1fr}
+    .app-title h1{font-size:32px}
+  }
 
   @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} }
   @media (max-width:768px){
@@ -506,59 +575,59 @@
 </head>
 <body>
 
-<nav>
-  <div class="wrap">
-    <div class="brand"><span class="dot"></span>LinkVault</div>
-    <div class="nav-links">
-      <a href="#bookmarklet" class="mute">북마클릿</a>
-      <a href="#library" class="mute">저장 목록</a>
-      <a href="#features" class="mute">기능</a>
-      <a href="#how" class="mute">작동 방식</a>
-      <button class="btn btn-primary signup" onclick="openModal()">사전 등록</button>
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div>
+      <div class="side-brand"><span class="side-mark">L</span>LinkVault</div>
+      <div class="side-nav" aria-label="LinkVault pages">
+        <button class="side-link active" type="button" data-page="home" onclick="showAppPage('home')"><span>⌂</span>홈</button>
+        <button class="side-link" type="button" data-page="sources" onclick="showAppPage('sources')"><span>▣</span>소스</button>
+        <button class="side-link" type="button" data-page="wiki" onclick="showAppPage('wiki')"><span>◇</span>위키</button>
+        <button class="side-link" type="button" data-page="settings" onclick="showAppPage('settings')"><span>⚙</span>설정</button>
+      </div>
     </div>
-  </div>
-</nav>
+    <div class="side-profile">
+      <strong>My Space</strong>
+      저장한 이메일 기준으로 개인 라이브러리를 불러옵니다.
+    </div>
+  </aside>
 
-<header>
-  <div class="wrap">
-    <div class="hero">
-      <div>
+  <main class="app-main">
+    <section class="app-page active" id="page-home">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>오늘도 지식을 수집하고 정리해봐요</h1>
+          <p>YouTube 링크를 저장하면 자막을 가져와 위키형 요약과 개념 그래프로 바꿉니다.</p>
+        </div>
+        <button class="icon-button" type="button" onclick="openSampleSave()" title="저장 테스트">＋</button>
+      </div>
+      <div class="dashboard-card">
         <div class="pill"><span class="live"></span>오늘 MVP: 북마클릿 저장</div>
-        <h1>보고 있는 링크를<br><span class="accent">한 번에 저장</span>하세요.</h1>
-        <p class="sub">YouTube, LinkedIn, 아티클을 보다가 북마크바의 Save to LinkVault를 누르면 현재 URL, 제목, 선택한 텍스트가 Supabase DB에 저장됩니다.</p>
-        <div class="hero-actions">
-          <a href="#bookmarklet" class="btn btn-primary btn-lg">북마클릿 설치하기</a>
-          <button type="button" class="btn btn-secondary btn-lg" onclick="openSampleSave()">저장 화면 테스트</button>
+        <h2>보고 있는 링크를<br><span class="accent">한 번에 저장</span>하세요.</h2>
+        <p class="section-sub">북마클릿으로 저장하거나, 아래 입력창에서 바로 저장 모달을 열 수 있습니다.</p>
+        <form class="url-capture" onsubmit="return quickUrlSubmit(event)">
+          <input id="quickUrlInput" type="url" placeholder="YouTube URL을 붙여넣으세요">
+          <button class="btn btn-primary" type="submit">추가하기</button>
+        </form>
+        <div class="quick-grid">
+          <div class="quick-card"><div class="quick-thumb">YouTube</div><strong>자막 추출</strong><span>저장 즉시 분석 시작</span></div>
+          <div class="quick-card"><div class="quick-thumb">Wiki</div><strong>마크다운 요약</strong><span>개인 지식 노트 생성</span></div>
+          <div class="quick-card"><div class="quick-thumb">Graph</div><strong>개념 연결</strong><span>[[위키링크]] 기반</span></div>
+          <div class="quick-card"><div class="quick-thumb">Source</div><strong>출처 보관</strong><span>원문 URL과 함께 저장</span></div>
         </div>
       </div>
-      <div class="hero-install" id="bookmarklet">
-        <div class="eyebrow">Install</div>
-        <h2>Save to LinkVault</h2>
-        <p>아래 빨간 버튼을 브라우저 북마크바로 드래그하세요. 설치 후 어떤 페이지에서든 버튼을 누르면 저장 모달이 열립니다.</p>
-        <div class="bookmarklet-config" id="appUrlConfig" style="display:none">
-          <label for="appUrlInput">LinkVault 앱 주소</label>
-          <input id="appUrlInput" type="url" placeholder="https://your-linkvault.vercel.app" oninput="buildBookmarklet()">
-        </div>
-        <a class="bookmarklet-button" id="bookmarkletLink" href="#">Save to LinkVault</a>
-        <div class="bookmarklet-warning" id="bookmarkletWarning">지금은 file:// 미리보기라 이 상태로 북마클릿을 설치하면 YouTube에서 동작하지 않을 수 있습니다. Vercel 배포 URL 같은 https 주소를 입력한 뒤 버튼을 북마크바로 드래그하세요.</div>
-        <div class="bookmarklet-help" id="bookmarkletHelp">Vercel 배포 페이지에서 이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.</div>
-        <div class="install-card">
-          <strong>저장되는 데이터</strong>
-          <ol>
-            <li>현재 페이지 URL</li>
-            <li>페이지 제목</li>
-            <li>드래그해 선택한 텍스트</li>
-            <li>소유자 이메일</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
+    </section>
 
-<section id="library">
-  <div class="wrap">
-    <div class="library-panel-live">
+    <section class="app-page" id="page-sources">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>소스</h1>
+          <p>북마클릿으로 저장한 링크와 분석 상태를 최신순으로 확인합니다.</p>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="openSampleSave()">URL 추가</button>
+      </div>
+      <div class="page-panel">
+    <div class="library-panel-live" id="library">
       <div class="eyebrow">Library</div>
       <h2>저장한 링크를 바로 확인하세요.</h2>
       <p class="section-sub">북마클릿으로 저장할 때 입력한 이메일을 넣으면 Supabase에 저장된 링크를 최신순으로 불러옵니다.</p>
@@ -570,22 +639,65 @@
         <div class="saved-empty">아직 불러온 저장 목록이 없습니다. 이메일을 입력하고 불러오기를 눌러주세요.</div>
       </div>
     </div>
-    <div class="knowledge-panel" id="knowledgePanel" style="display:none">
-      <div class="knowledge-head">
-        <div>
-          <div class="eyebrow">Knowledge Graph</div>
-          <h2>저장한 콘텐츠의 연결을 봅니다.</h2>
-          <p class="section-sub">제목과 선택 텍스트에서 키워드를 뽑아 관련된 콘텐츠를 자동으로 연결합니다.</p>
+      </div>
+    </section>
+
+    <section class="app-page" id="page-wiki">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>위키</h1>
+          <p>저장한 콘텐츠가 어떤 개념으로 연결되는지 봅니다. 왼쪽은 콘텐츠, 오른쪽은 개념입니다.</p>
         </div>
         <button class="btn btn-secondary" type="button" onclick="renderKnowledgeGraph()">그래프 새로고침</button>
       </div>
+      <div class="page-panel">
+    <div class="knowledge-panel" id="knowledgePanel">
+      <div class="knowledge-head">
+        <div>
+          <div class="eyebrow">Knowledge Graph</div>
+          <h2>콘텐츠와 개념의 연결을 봅니다.</h2>
+          <p class="section-sub">콘텐츠 노드는 재생 아이콘으로, 개념 노드는 연결된 콘텐츠 수로 표시합니다.</p>
+        </div>
+      </div>
       <div class="graph-wrap" id="graphWrap">
-        <div class="saved-empty">저장 목록을 불러오면 그래프가 표시됩니다.</div>
+        <div class="saved-empty">소스 페이지에서 저장 목록을 불러오면 그래프가 표시됩니다.</div>
       </div>
       <div class="relation-list" id="relationList"></div>
     </div>
-  </div>
-</section>
+      </div>
+    </section>
+
+    <section class="app-page" id="page-settings">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>설정</h1>
+          <p>북마클릿 설치와 앱 주소 설정을 관리합니다.</p>
+        </div>
+      </div>
+      <div class="page-panel">
+        <div class="hero-install" id="bookmarklet">
+          <div class="eyebrow">Install</div>
+          <h2>Save to LinkVault</h2>
+          <p>아래 빨간 버튼을 브라우저 북마크바로 드래그하세요. 설치 후 어떤 페이지에서든 버튼을 누르면 저장 모달이 열립니다.</p>
+          <div class="bookmarklet-config" id="appUrlConfig" style="display:none">
+            <label for="appUrlInput">LinkVault 앱 주소</label>
+            <input id="appUrlInput" type="url" placeholder="https://your-linkvault.vercel.app" oninput="buildBookmarklet()">
+          </div>
+          <a class="bookmarklet-button" id="bookmarkletLink" href="#">Save to LinkVault</a>
+          <div class="bookmarklet-warning" id="bookmarkletWarning">지금은 file:// 미리보기라 이 상태로 북마클릿을 설치하면 YouTube에서 동작하지 않을 수 있습니다. Vercel 배포 URL 같은 https 주소를 입력한 뒤 버튼을 북마크바로 드래그하세요.</div>
+          <div class="bookmarklet-help" id="bookmarkletHelp">Vercel 배포 페이지에서 이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.</div>
+          <div class="install-card">
+            <strong>저장되는 데이터</strong>
+            <ol>
+              <li>현재 페이지 URL</li>
+              <li>페이지 제목</li>
+              <li>드래그해 선택한 텍스트</li>
+              <li>소유자 이메일</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
 
 <section id="features">
   <div class="wrap">
@@ -798,6 +910,9 @@
   </div>
 </footer>
 
+  </main>
+</div>
+
 <div class="scrim" id="saveScrim" onclick="if(event.target===this)closeSaveModal()">
   <div class="modal">
     <div class="modal-head">
@@ -892,6 +1007,32 @@
     text: ''
   };
   let currentSavedItems = [];
+
+  function showAppPage(page){
+    document.querySelectorAll('.app-page').forEach(el => {
+      el.classList.toggle('active', el.id === `page-${page}`);
+    });
+    document.querySelectorAll('.side-link').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === page);
+    });
+    if(page === 'wiki'){
+      renderKnowledgeGraph();
+    }
+  }
+
+  function quickUrlSubmit(e){
+    e.preventDefault();
+    const input = document.getElementById('quickUrlInput');
+    const url = input?.value.trim();
+    if(!url) return false;
+    openSaveModal({
+      url,
+      title: 'Untitled',
+      text: ''
+    });
+    if(input) input.value = '';
+    return false;
+  }
 
   function buildBookmarklet(){
     const link = document.getElementById('bookmarkletLink');
@@ -1203,7 +1344,9 @@
     const relationList = document.getElementById('relationList');
     if(!panel || !wrap || !relationList) return;
     if(!currentSavedItems.length){
-      panel.style.display = 'none';
+      panel.style.display = 'block';
+      wrap.innerHTML = '<div class="saved-empty">소스 페이지에서 이메일로 저장 목록을 먼저 불러오면 그래프가 표시됩니다.</div>';
+      relationList.innerHTML = '';
       return;
     }
     panel.style.display = 'block';
@@ -1254,7 +1397,7 @@
       text.setAttribute('x', x);
       text.setAttribute('y', y + 4);
       text.setAttribute('text-anchor', 'middle');
-      text.textContent = String(index + 1);
+      text.textContent = '▶';
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('class', 'graph-label');
       label.setAttribute('x', x);
@@ -1302,7 +1445,9 @@
     const relationList = document.getElementById('relationList');
     if(!panel || !wrap || !relationList) return;
     if(!currentSavedItems.length){
-      panel.style.display = 'none';
+      panel.style.display = 'block';
+      wrap.innerHTML = '<div class="saved-empty">소스 페이지에서 이메일로 저장 목록을 먼저 불러오면 그래프가 표시됩니다.</div>';
+      relationList.innerHTML = '';
       return;
     }
     panel.style.display = 'block';
@@ -1377,7 +1522,7 @@
       text.setAttribute('x', x);
       text.setAttribute('y', y + 4);
       text.setAttribute('text-anchor', 'middle');
-      text.textContent = String(index + 1);
+      text.textContent = '▶';
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('class', 'graph-label');
       label.setAttribute('x', x);
@@ -1394,12 +1539,12 @@
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', x);
       circle.setAttribute('cy', y);
-      circle.setAttribute('r', concept.items.length > 1 ? 26 : 21);
+      circle.setAttribute('r', concept.items.length > 1 ? 30 : 25);
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', x);
       text.setAttribute('y', y + 4);
       text.setAttribute('text-anchor', 'middle');
-      text.textContent = String(concept.items.length);
+      text.textContent = `${concept.items.length}개`;
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('class', 'graph-label');
       label.setAttribute('x', x);
