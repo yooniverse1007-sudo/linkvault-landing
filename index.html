@@ -466,7 +466,9 @@
   .graph-wrap svg{display:block;width:100%;height:360px}
   .graph-edge{stroke:var(--stone);stroke-width:2;opacity:.75}
   .graph-node circle{fill:var(--canvas);stroke:var(--primary);stroke-width:3}
+  .graph-node rect{fill:var(--canvas);stroke:var(--hairline);stroke-width:2}
   .graph-node.graph-concept circle{fill:#fff7d6;stroke:#d39b00}
+  .graph-node.graph-concept rect{fill:#fff7d6;stroke:#d39b00}
   .graph-node.graph-content circle{fill:#fff;stroke:var(--primary)}
   .graph-node text{font-size:12px;font-weight:800;fill:var(--ink);pointer-events:none}
   .graph-label{font-size:11px;fill:var(--mute)}
@@ -1536,22 +1538,24 @@
     conceptPositions.forEach(({ x, y, concept }) => {
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       group.setAttribute('class', 'graph-node graph-concept');
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', x);
-      circle.setAttribute('cy', y);
-      circle.setAttribute('r', concept.items.length > 1 ? 30 : 25);
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x - 78);
+      rect.setAttribute('y', y - 20);
+      rect.setAttribute('width', 156);
+      rect.setAttribute('height', 40);
+      rect.setAttribute('rx', 20);
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', x);
       text.setAttribute('y', y + 4);
       text.setAttribute('text-anchor', 'middle');
-      text.textContent = `${concept.items.length}개`;
+      text.textContent = shortTitle(concept.label);
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('class', 'graph-label');
       label.setAttribute('x', x);
-      label.setAttribute('y', y + 42);
+      label.setAttribute('y', y + 36);
       label.setAttribute('text-anchor', 'middle');
-      label.textContent = shortTitle(concept.label);
-      group.append(circle, text, label);
+      label.textContent = `${concept.items.length}개 콘텐츠`;
+      group.append(rect, text, label);
       svg.appendChild(group);
     });
     wrap.appendChild(svg);
