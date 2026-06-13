@@ -125,6 +125,9 @@ alter table public.saved_links
   add column if not exists summary text,
   add column if not exists keywords text[] not null default '{}',
   add column if not exists topics text[] not null default '{}',
+  add column if not exists wikilinks text[] not null default '{}',
+  add column if not exists markdown_source text,
+  add column if not exists markdown_summary text,
   add column if not exists transcript_status text,
   add column if not exists transcript_excerpt text,
   add column if not exists analyzed_at timestamptz;

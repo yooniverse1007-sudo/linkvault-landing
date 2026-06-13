@@ -1064,10 +1064,46 @@
     return words;
   }
 
+  function normalizeConcept(value){
+    return String(value || '')
+      .replace(/^\[\[|\]\]$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function uniqueConcepts(values, limit = 12){
+    const seen = new Set();
+    const concepts = [];
+    const list = Array.isArray(values) ? values : (values ? [values] : []);
+    list.forEach(value => {
+      const concept = normalizeConcept(value);
+      const key = concept.toLowerCase();
+      if(!concept || seen.has(key)) return;
+      seen.add(key);
+      concepts.push(concept);
+    });
+    return concepts.slice(0, limit);
+  }
+
+  function wikilinksFromMarkdown(markdown){
+    return uniqueConcepts([...String(markdown || '').matchAll(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g)].map(match => match[1]), 16);
+  }
+
+  function markdownLead(markdown){
+    return String(markdown || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('---') && !line.startsWith('#') && !line.startsWith('type:') && !line.startsWith('title:') && !line.startsWith('keywords:') && !line.startsWith('topics:') && !line.startsWith('wikilinks:') && !line.startsWith('- [['))
+      .join(' ')
+      .replace(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g, '$1')
+      .slice(0, 260);
+  }
+
   function extractKeywords(item){
-    if(Array.isArray(item.keywords) && item.keywords.length){
-      return item.keywords.map(String).filter(Boolean).slice(0, 10);
-    }
+    const storedKeywords = uniqueConcepts(item.keywords, 10);
+    if(storedKeywords.length) return storedKeywords;
+    const wikiConcepts = uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 10);
+    if(wikiConcepts.length) return wikiConcepts;
     const scores = new Map();
     scoreConcepts(item.title || '', 3, scores);
     scoreConcepts(item.selected_text || '', 1.4, scores);
@@ -1080,6 +1116,10 @@
   }
 
   function extractRelationTerms(item){
+    const wikiConcepts = uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 16);
+    if(wikiConcepts.length) return wikiConcepts;
+    const topicConcepts = uniqueConcepts(item.topics, 10);
+    if(topicConcepts.length) return topicConcepts;
     const titleWords = scoreConcepts(item.title || '', 2, new Map());
     const textWords = scoreConcepts(item.selected_text || '', 1, new Map());
     return [...new Set([...titleWords, ...textWords])].filter(word => word.length > 2);
@@ -1088,6 +1128,10 @@
   function makeSummary(item){
     if(item.summary){
       return item.summary;
+    }
+    const markdownSummary = markdownLead(item.markdown_summary);
+    if(markdownSummary){
+      return markdownSummary;
     }
     const title = item.title || 'Untitled';
     const text = (item.selected_text || '').trim();
@@ -1115,7 +1159,8 @@
       ...item,
       summary: makeSummary(item),
       keywords: extractKeywords(item),
-      relationTerms: extractRelationTerms(item)
+      relationTerms: extractRelationTerms(item),
+      wikiConcepts: uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 16)
     }));
   }
 
@@ -1125,16 +1170,17 @@
       for(let j = i + 1; j < items.length; j++){
         const a = items[i];
         const b = items[j];
-        const exactShared = a.keywords.filter(keyword => b.keywords.includes(keyword));
-        const termShared = a.relationTerms.filter(term => b.relationTerms.includes(term));
-        const shared = [...new Set([...exactShared, ...termShared])].slice(0, 5);
+        const exactShared = a.wikiConcepts.filter(concept => b.wikiConcepts.map(item => item.toLowerCase()).includes(concept.toLowerCase()));
+        const keywordShared = a.keywords.filter(keyword => b.keywords.map(item => item.toLowerCase()).includes(keyword.toLowerCase()));
+        const termShared = a.relationTerms.filter(term => b.relationTerms.map(item => item.toLowerCase()).includes(term.toLowerCase()));
+        const shared = uniqueConcepts([...exactShared, ...keywordShared, ...termShared], 5);
         const strongShared = shared.filter(term => term.length > 3);
-        if(exactShared.length || strongShared.length >= 2){
+        if(exactShared.length || keywordShared.length || strongShared.length >= 2){
           relations.push({
             source: i,
             target: j,
             shared,
-            score: exactShared.length * 3 + strongShared.length,
+            score: exactShared.length * 5 + keywordShared.length * 3 + strongShared.length,
             a,
             b
           });
@@ -1234,7 +1280,7 @@
       const b = document.createElement('strong');
       b.textContent = shortTitle(rel.b.title);
       const keywords = document.createElement('span');
-      keywords.textContent = `연결 키워드: ${rel.shared.join(', ')}`;
+      keywords.textContent = `연결 개념: ${rel.shared.join(', ')}`;
       row.append(a, document.createTextNode(' ↔ '), b, document.createElement('br'), keywords);
       relationList.appendChild(row);
     });
@@ -1391,6 +1437,9 @@
         insertPayload.summary = analysis.summary || null;
         insertPayload.keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
         insertPayload.topics = Array.isArray(analysis.topics) ? analysis.topics : [];
+        insertPayload.wikilinks = Array.isArray(analysis.wikilinks) ? analysis.wikilinks : [];
+        insertPayload.markdown_source = analysis.markdown_source || null;
+        insertPayload.markdown_summary = analysis.markdown_summary || null;
         insertPayload.transcript_status = analysis.transcript_status || null;
         insertPayload.transcript_excerpt = analysis.transcript_excerpt || null;
         insertPayload.analyzed_at = new Date().toISOString();
@@ -1400,7 +1449,7 @@
         .from('saved_links')
         .insert(insertPayload);
 
-      if(error && /summary|keywords|topics|transcript|analyzed|schema cache/i.test(error.message || '')){
+      if(error && /summary|keywords|topics|wikilinks|markdown|transcript|analyzed|schema cache/i.test(error.message || '')){
         const fallbackPayload = {
           owner_email: insertPayload.owner_email,
           source_url: insertPayload.source_url,

@@ -78,10 +78,7 @@ function parseTranscriptJson3(data) {
       .trim();
     if (!text) continue;
     const seconds = Math.floor((event.tStartMs || 0) / 1000);
-    lines.push({
-      start: seconds,
-      text
-    });
+    lines.push({ start: seconds, text });
   }
   return lines;
 }
@@ -89,9 +86,7 @@ function parseTranscriptJson3(data) {
 async function fetchTranscript(videoId) {
   const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
   const page = await fetch(watchUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 LinkVault/1.0'
-    }
+    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
   });
   if (!page.ok) {
     return { status: 'youtube_page_failed', transcript: '', lines: [] };
@@ -107,9 +102,7 @@ async function fetchTranscript(videoId) {
 
   const transcriptUrl = `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
   const caption = await fetch(transcriptUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 LinkVault/1.0'
-    }
+    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
   });
   if (!caption.ok) {
     return { status: 'caption_fetch_failed', transcript: '', lines: [] };
@@ -117,7 +110,7 @@ async function fetchTranscript(videoId) {
 
   const data = await caption.json();
   const lines = parseTranscriptJson3(data);
-  const transcript = lines.map(line => `[${line.start}s] ${line.text}`).join('\n');
+  const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
   return {
     status: transcript ? 'ok' : 'empty_caption',
     transcript,
@@ -126,10 +119,45 @@ async function fetchTranscript(videoId) {
   };
 }
 
+function toTimestamp(totalSeconds = 0) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  return hours ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function yamlString(value = '') {
+  return JSON.stringify(String(value).replace(/\r?\n/g, ' '));
+}
+
+function buildMarkdownSource({ title, url, videoId, language, lines }) {
+  const body = (lines || [])
+    .map(line => `- [${toTimestamp(line.start)}] ${line.text}`)
+    .join('\n');
+
+  return [
+    '---',
+    'type: youtube_transcript',
+    `source_url: ${yamlString(url)}`,
+    `title: ${yamlString(title || 'Untitled')}`,
+    `video_id: ${yamlString(videoId)}`,
+    `language: ${yamlString(language || '')}`,
+    `generated_at: ${yamlString(new Date().toISOString())}`,
+    '---',
+    '',
+    `# Transcript: ${title || 'Untitled'}`,
+    '',
+    body || '_No transcript lines were available._'
+  ].join('\n');
+}
+
 function fallbackKeywords(text) {
   const stop = new Set([
     'the', 'and', 'for', 'with', 'from', 'this', 'that', 'you', 'your', 'how', 'what',
-    '영상', '콘텐츠', '링크', '하는', '있는', '그리고', '하지만', '대한', '에서'
+    '영상', '콘텐츠', '링크', '하는', '있는', '그리고', '하지만', '에서', '으로', '대한',
+    'youtube', 'youtu', 'watch', 'https', 'http', 'www', 'com'
   ]);
   const counts = new Map();
   (text || '')
@@ -137,31 +165,75 @@ function fallbackKeywords(text) {
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
     .map(word => word.trim())
-    .filter(word => word.length > 1 && !stop.has(word))
+    .filter(word => word.length > 1 && !stop.has(word) && !/^\d+$/.test(word))
     .forEach(word => counts.set(word, (counts.get(word) || 0) + 1));
   return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 8)
     .map(([word]) => word);
 }
 
-async function summarizeWithOpenAI({ title, transcript }) {
+function extractWikiLinks(markdown = '') {
+  return [...markdown.matchAll(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g)]
+    .map(match => match[1].trim())
+    .filter(Boolean)
+    .filter((term, index, arr) => arr.indexOf(term) === index)
+    .slice(0, 16);
+}
+
+function normalizeList(value, limit) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(item => String(item).replace(/^\[\[|\]\]$/g, '').trim())
+    .filter(Boolean)
+    .filter((item, index, arr) => arr.indexOf(item) === index)
+    .slice(0, limit);
+}
+
+function fallbackMarkdownSummary({ title, sourceUrl, transcript, keywords }) {
+  const summary = transcript.split('\n').slice(0, 8).join(' ').slice(0, 600);
+  const links = keywords.slice(0, 6).map(keyword => `[[${keyword}]]`);
+  return [
+    '---',
+    'type: source_summary',
+    `title: ${yamlString(title || 'Untitled')}`,
+    `source_url: ${yamlString(sourceUrl || '')}`,
+    '---',
+    '',
+    `# ${title || 'Untitled'}`,
+    '',
+    '## 핵심 요약',
+    summary || '자막을 불러왔지만 요약을 생성하지 못했습니다.',
+    '',
+    '## 주요 개념',
+    ...links.map(link => `- ${link}`),
+    '',
+    '## 연결 후보',
+    ...links.map(link => `- ${link}`)
+  ].join('\n');
+}
+
+async function summarizeWithOpenAI({ title, url, transcript, markdownSource }) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    const firstLines = transcript.split('\n').slice(0, 8).join(' ');
+    const keywords = fallbackKeywords(`${title} ${transcript}`);
+    const markdownSummary = fallbackMarkdownSummary({ title, sourceUrl: url, transcript, keywords });
     return {
-      summary: firstLines ? `${firstLines.slice(0, 240)}...` : '',
-      keywords: fallbackKeywords(`${title} ${transcript}`),
+      summary: transcript.split('\n').slice(0, 8).join(' ').slice(0, 300),
+      keywords,
+      topics: keywords.slice(0, 5),
+      wikilinks: extractWikiLinks(markdownSummary),
+      markdown_summary: markdownSummary,
       status: 'missing_openai_key'
     };
   }
 
   const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-  const clippedTranscript = transcript.slice(0, 45000);
+  const clippedSource = markdownSource.slice(0, 55000);
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -169,16 +241,28 @@ async function summarizeWithOpenAI({ title, transcript }) {
       input: [
         {
           role: 'system',
-          content: 'You analyze YouTube transcripts for a personal knowledge base. Return compact Korean JSON only.'
+          content: [
+            'You turn YouTube transcripts into a Korean personal knowledge wiki.',
+            'Return JSON only. No markdown fences.',
+            'Wikilinks must be short noun concepts in Korean or English, like [[Second Brain]] or [[지식 그래프]].',
+            'Avoid long phrases, full sentences, generic words, and duplicate concepts.'
+          ].join(' ')
         },
         {
           role: 'user',
           content: [
-            '다음 YouTube 자막을 분석해 JSON만 반환하세요.',
-            'schema: {"summary":"한국어 2-3문장 요약","keywords":["단어 단위 핵심 키워드 6-10개"],"topics":["관련 주제 3-5개"]}',
-            `title: ${title || ''}`,
-            `transcript:\n${clippedTranscript}`
-          ].join('\n\n')
+            'Create a wiki-style note from this transcript markdown.',
+            'Return this JSON schema:',
+            '{"summary":"Korean 2-4 sentence summary","keywords":["single-word or short noun keywords, 6-10"],"topics":["broader topics, 3-6"],"wikilinks":["concept names without brackets, 6-12"],"markdown_summary":"Markdown note with YAML frontmatter, sections, and [[wikilinks]]"}',
+            '',
+            'markdown_summary requirements:',
+            '- Korean by default.',
+            '- Include YAML frontmatter with type, title, keywords, topics, wikilinks.',
+            '- Include sections: 핵심 요약, 주요 개념, 기억할 문장, 연결 후보.',
+            '- Use [[wikilinks]] for important reusable concepts.',
+            '',
+            clippedSource
+          ].join('\n')
         }
       ]
     })
@@ -193,10 +277,18 @@ async function summarizeWithOpenAI({ title, transcript }) {
   const output = data.output_text || data.output?.flatMap(item => item.content || []).map(part => part.text || '').join('') || '{}';
   const jsonMatch = output.match(/\{[\s\S]*\}/);
   const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : output);
+  const markdownSummary = String(parsed.markdown_summary || '').slice(0, 20000);
+  const wikilinks = normalizeList(parsed.wikilinks, 14);
+  const extractedLinks = extractWikiLinks(markdownSummary);
+  const keywords = normalizeList(parsed.keywords, 10);
+  const resolvedWikilinks = wikilinks.length ? wikilinks : extractedLinks;
+
   return {
     summary: String(parsed.summary || '').slice(0, 1200),
-    keywords: Array.isArray(parsed.keywords) ? parsed.keywords.map(String).slice(0, 10) : fallbackKeywords(output),
-    topics: Array.isArray(parsed.topics) ? parsed.topics.map(String).slice(0, 8) : [],
+    keywords: keywords.length ? keywords : resolvedWikilinks.slice(0, 10),
+    topics: normalizeList(parsed.topics, 8),
+    wikilinks: resolvedWikilinks,
+    markdown_summary: markdownSummary,
     status: 'ok'
   };
 }
@@ -216,19 +308,34 @@ module.exports = async function handler(req, res) {
     }
 
     const transcriptResult = await fetchTranscript(videoId);
+    const markdownSource = buildMarkdownSource({
+      title,
+      url,
+      videoId,
+      language: transcriptResult.language || '',
+      lines: transcriptResult.lines || []
+    });
+
     if (!transcriptResult.transcript) {
       return json(res, 200, {
         video_id: videoId,
         summary: '',
         keywords: fallbackKeywords(title),
         topics: [],
-        transcript_status: transcriptResult.status
+        wikilinks: [],
+        markdown_source: markdownSource,
+        markdown_summary: '',
+        transcript_status: transcriptResult.status,
+        transcript_language: transcriptResult.language || '',
+        transcript_excerpt: ''
       });
     }
 
     const analysis = await summarizeWithOpenAI({
       title,
-      transcript: transcriptResult.transcript
+      url,
+      transcript: transcriptResult.transcript,
+      markdownSource
     });
 
     return json(res, 200, {
@@ -236,13 +343,14 @@ module.exports = async function handler(req, res) {
       summary: analysis.summary,
       keywords: analysis.keywords,
       topics: analysis.topics || [],
+      wikilinks: analysis.wikilinks || [],
+      markdown_source: markdownSource,
+      markdown_summary: analysis.markdown_summary || '',
       transcript_status: analysis.status === 'ok' ? 'ok' : analysis.status,
       transcript_language: transcriptResult.language || '',
       transcript_excerpt: transcriptResult.transcript.slice(0, 4000)
     });
   } catch (err) {
-    return json(res, 500, {
-      error: err.message || 'Analysis failed'
-    });
+    return json(res, 500, { error: err.message || 'Analysis failed' });
   }
 };
