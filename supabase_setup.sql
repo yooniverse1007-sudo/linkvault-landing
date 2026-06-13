@@ -92,6 +92,7 @@ create table if not exists public.saved_links (
   id              uuid primary key default gen_random_uuid(),
   owner_email     text not null,
   source_url      text not null,
+  canonical_source_url text,
   title           text,
   selected_text   text,
   source_platform text,
@@ -122,6 +123,7 @@ create index if not exists saved_links_owner_email_created_at_idx
   on public.saved_links (owner_email, created_at desc);
 
 alter table public.saved_links
+  add column if not exists canonical_source_url text,
   add column if not exists summary text,
   add column if not exists keywords text[] not null default '{}',
   add column if not exists topics text[] not null default '{}',
@@ -131,3 +133,7 @@ alter table public.saved_links
   add column if not exists transcript_status text,
   add column if not exists transcript_excerpt text,
   add column if not exists analyzed_at timestamptz;
+
+create unique index if not exists saved_links_owner_email_canonical_source_url_uidx
+  on public.saved_links (owner_email, canonical_source_url)
+  where canonical_source_url is not null;

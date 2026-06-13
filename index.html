@@ -1078,6 +1078,66 @@
     }
   }
 
+  function getYouTubeVideoId(url){
+    try{
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\./,'');
+      if(host === 'youtu.be'){
+        return parsed.pathname.split('/').filter(Boolean)[0] || '';
+      }
+      if(host.includes('youtube.com')){
+        if(parsed.searchParams.get('v')) return parsed.searchParams.get('v') || '';
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if(parts[0] === 'shorts' || parts[0] === 'embed') return parts[1] || '';
+      }
+      return '';
+    }catch(_err){
+      return '';
+    }
+  }
+
+  function canonicalizeSourceUrl(url){
+    try{
+      const platform = detectPlatform(url);
+      if(platform === 'youtube'){
+        const videoId = getYouTubeVideoId(url);
+        if(videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+      }
+      const parsed = new URL(url);
+      parsed.hash = '';
+      ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid'].forEach(param => parsed.searchParams.delete(param));
+      parsed.hostname = parsed.hostname.replace(/^www\./,'');
+      return parsed.toString().replace(/\/$/, '');
+    }catch(_err){
+      return String(url || '').trim();
+    }
+  }
+
+  async function findExistingSavedLink(email, url){
+    const canonical = canonicalizeSourceUrl(url);
+    const matches = row => {
+      const rowCanonical = row.canonical_source_url || canonicalizeSourceUrl(row.source_url);
+      return rowCanonical === canonical || row.source_url === url;
+    };
+    let result = await supabaseClient
+      .from('saved_links')
+      .select('id,title,source_url,canonical_source_url')
+      .eq('owner_email', email)
+      .limit(500);
+
+    if(result.error && /canonical_source_url|schema cache/i.test(result.error.message || '')){
+      result = await supabaseClient
+        .from('saved_links')
+        .select('id,title,source_url')
+        .eq('owner_email', email)
+        .limit(500);
+    }
+    if(result.error){
+      throw result.error;
+    }
+    return (result.data || []).find(matches) || null;
+  }
+
   function openSaveModal(data){
     pendingSave = {
       url: data.url || '',
@@ -1622,6 +1682,16 @@
     try{
       localStorage.setItem('linkvault_save_email', email);
       const platform = detectPlatform(pendingSave.url);
+      const canonicalSourceUrl = canonicalizeSourceUrl(pendingSave.url);
+      btn.textContent = '중복 확인 중...';
+      const existing = await findExistingSavedLink(email, pendingSave.url);
+      if(existing){
+        showSaveError(`이미 저장된 링크입니다: ${existing.title || existing.source_url}`);
+        btn.disabled = false;
+        btn.textContent = '저장하기';
+        return false;
+      }
+
       let analysis = null;
       if(platform === 'youtube'){
         btn.textContent = '자막 분석 중...';
@@ -1632,6 +1702,7 @@
       const insertPayload = {
         owner_email: email,
         source_url: pendingSave.url,
+        canonical_source_url: canonicalSourceUrl,
         title: title,
         selected_text: pendingSave.text || null,
         source_platform: platform
@@ -1652,7 +1723,7 @@
         .from('saved_links')
         .insert(insertPayload);
 
-      if(error && /summary|keywords|topics|wikilinks|markdown|transcript|analyzed|schema cache/i.test(error.message || '')){
+      if(error && /canonical_source_url|summary|keywords|topics|wikilinks|markdown|transcript|analyzed|schema cache/i.test(error.message || '')){
         const fallbackPayload = {
           owner_email: insertPayload.owner_email,
           source_url: insertPayload.source_url,
@@ -1668,6 +1739,12 @@
 
       if(error){
         console.error(error);
+        if(/duplicate key|unique|saved_links_owner_email_canonical/i.test(error.message || '')){
+          showSaveError('이미 저장된 링크입니다.');
+          btn.disabled = false;
+          btn.textContent = '저장하기';
+          return false;
+        }
         showSaveError(`저장 실패: ${error.message || 'Supabase 테이블/정책을 확인해 주세요.'}`);
         btn.disabled = false;
         btn.textContent = '저장하기';
