@@ -68,6 +68,51 @@ function chooseCaptionTrack(tracks = []) {
   return tracks[0];
 }
 
+function decodeXmlEntities(value = '') {
+  return String(value)
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function parseTimedTextTrackList(xml = '', videoId) {
+  const tracks = [];
+  for (const match of xml.matchAll(/<track\b([^>]*)\/?>/g)) {
+    const attrs = {};
+    for (const attr of match[1].matchAll(/([\w-]+)="([^"]*)"/g)) {
+      attrs[attr[1]] = decodeXmlEntities(attr[2]);
+    }
+    const languageCode = attrs.lang_code || attrs.lang_original || '';
+    if (!languageCode) continue;
+    const params = new URLSearchParams({
+      v: videoId,
+      lang: languageCode,
+      fmt: 'json3'
+    });
+    if (attrs.kind) params.set('kind', attrs.kind);
+    if (attrs.name) params.set('name', attrs.name);
+    tracks.push({
+      baseUrl: `https://www.youtube.com/api/timedtext?${params.toString()}`,
+      languageCode,
+      kind: attrs.kind || '',
+      name: attrs.name || ''
+    });
+  }
+  return tracks;
+}
+
+async function fetchTimedTextTracks(videoId) {
+  const listUrl = `https://www.youtube.com/api/timedtext?type=list&v=${encodeURIComponent(videoId)}`;
+  const response = await fetch(listUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
+  });
+  if (!response.ok) return [];
+  const xml = await response.text();
+  return parseTimedTextTrackList(xml, videoId);
+}
+
 function parseTranscriptJson3(data) {
   const lines = [];
   for (const event of data.events || []) {
@@ -94,29 +139,41 @@ async function fetchTranscript(videoId) {
 
   const html = await page.text();
   const player = extractInitialPlayerResponse(html);
-  const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-  const track = chooseCaptionTrack(tracks);
-  if (!track?.baseUrl) {
+  let tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (!tracks.length) {
+    tracks = await fetchTimedTextTracks(videoId);
+  }
+  const preferredTrack = chooseCaptionTrack(tracks);
+  const orderedTracks = [
+    preferredTrack,
+    ...tracks.filter(track => track !== preferredTrack)
+  ].filter(Boolean);
+  if (!orderedTracks.length) {
     return { status: 'no_caption_track', transcript: '', lines: [] };
   }
 
-  const transcriptUrl = `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
-  const caption = await fetch(transcriptUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
-  });
-  if (!caption.ok) {
-    return { status: 'caption_fetch_failed', transcript: '', lines: [] };
+  for (const track of orderedTracks) {
+    const transcriptUrl = `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
+    const caption = await fetch(transcriptUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
+    });
+    if (!caption.ok) continue;
+
+    const data = await caption.json();
+    const lines = parseTranscriptJson3(data);
+    const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
+    if (transcript) {
+      return {
+        status: 'ok',
+        transcript,
+        lines,
+        language: track.languageCode || '',
+        caption_kind: track.kind || ''
+      };
+    }
   }
 
-  const data = await caption.json();
-  const lines = parseTranscriptJson3(data);
-  const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
-  return {
-    status: transcript ? 'ok' : 'empty_caption',
-    transcript,
-    lines,
-    language: track.languageCode || ''
-  };
+  return { status: 'caption_fetch_failed', transcript: '', lines: [] };
 }
 
 function toTimestamp(totalSeconds = 0) {
@@ -341,6 +398,7 @@ module.exports = async function handler(req, res) {
         markdown_summary: '',
         transcript_status: transcriptResult.status,
         transcript_language: transcriptResult.language || '',
+        caption_kind: transcriptResult.caption_kind || '',
         transcript_excerpt: ''
       });
     }
@@ -362,6 +420,7 @@ module.exports = async function handler(req, res) {
       markdown_summary: analysis.markdown_summary || '',
       transcript_status: analysis.status === 'ok' ? 'ok' : analysis.status,
       transcript_language: transcriptResult.language || '',
+      caption_kind: transcriptResult.caption_kind || '',
       transcript_excerpt: transcriptResult.transcript.slice(0, 4000)
     });
   } catch (err) {
