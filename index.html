@@ -438,10 +438,42 @@
   .saved-item a{color:var(--primary);font-size:13px;word-break:break-all}
   .saved-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:12px}
   .saved-quote{font-size:13px;color:var(--body);line-height:1.5;margin-top:10px}
+  .saved-summary{
+    background:var(--canvas);border:1px solid var(--hairline-soft);
+    border-radius:var(--r-md);padding:12px;margin-top:12px;
+  }
+  .saved-summary strong{display:block;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .saved-summary p{font-size:13px;color:var(--body);line-height:1.55}
+  .keyword-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .keyword-chip{
+    display:inline-flex;align-items:center;border-radius:var(--r-full);
+    background:#ffe5ea;color:var(--primary);font-size:12px;font-weight:800;padding:6px 9px;
+  }
   .saved-open{
     border:1px solid var(--hairline);background:var(--canvas);border-radius:var(--r-md);
     color:var(--ink);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;
   }
+  .knowledge-panel{
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    background:var(--canvas);padding:28px;margin-top:20px;
+  }
+  .knowledge-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
+  .knowledge-head h2{font-size:32px}
+  .graph-wrap{
+    border:1px solid var(--hairline-soft);border-radius:var(--r-md);
+    background:var(--surface-soft);min-height:360px;overflow:hidden;
+  }
+  .graph-wrap svg{display:block;width:100%;height:360px}
+  .graph-edge{stroke:var(--stone);stroke-width:2;opacity:.75}
+  .graph-node circle{fill:var(--canvas);stroke:var(--primary);stroke-width:3}
+  .graph-node text{font-size:12px;font-weight:800;fill:var(--ink);pointer-events:none}
+  .graph-label{font-size:11px;fill:var(--mute)}
+  .relation-list{display:grid;gap:10px;margin-top:16px}
+  .relation-item{
+    background:var(--surface-soft);border:1px solid var(--hairline-soft);
+    border-radius:var(--r-md);padding:12px;font-size:13px;color:var(--body);line-height:1.5;
+  }
+  .relation-item strong{color:var(--ink)}
   #notion-save,#youtube-sync,.cta-strip{display:none}
 
   @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} }
@@ -455,6 +487,7 @@
     .library-head,.import-summary{flex-direction:column;align-items:flex-start}
     .library-toolbar,.saved-item{grid-template-columns:1fr}
     .library-toolbar{display:grid}
+    .knowledge-head{flex-direction:column}
     .video-grid{grid-template-columns:1fr}
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
@@ -534,6 +567,20 @@
       <div class="saved-list" id="savedList">
         <div class="saved-empty">아직 불러온 저장 목록이 없습니다. 이메일을 입력하고 불러오기를 눌러주세요.</div>
       </div>
+    </div>
+    <div class="knowledge-panel" id="knowledgePanel" style="display:none">
+      <div class="knowledge-head">
+        <div>
+          <div class="eyebrow">Knowledge Graph</div>
+          <h2>저장한 콘텐츠의 연결을 봅니다.</h2>
+          <p class="section-sub">제목과 선택 텍스트에서 키워드를 뽑아 관련된 콘텐츠를 자동으로 연결합니다.</p>
+        </div>
+        <button class="btn btn-secondary" type="button" onclick="renderKnowledgeGraph()">그래프 새로고침</button>
+      </div>
+      <div class="graph-wrap" id="graphWrap">
+        <div class="saved-empty">저장 목록을 불러오면 그래프가 표시됩니다.</div>
+      </div>
+      <div class="relation-list" id="relationList"></div>
     </div>
   </div>
 </section>
@@ -842,6 +889,7 @@
     title: '',
     text: ''
   };
+  let currentSavedItems = [];
 
   function buildBookmarklet(){
     const link = document.getElementById('bookmarkletLink');
@@ -954,15 +1002,193 @@
     }
   }
 
+  function normalizeWords(text){
+    const stopwords = new Set([
+      'the','and','for','with','from','this','that','you','your','are','was','were','have','has','how','what','why',
+      '으로','에서','하는','하고','있는','없는','것을','대한','그리고','하지만','영상','콘텐츠','링크','저장','페이지',
+      'youtube','youtu','https','http','www','com','watch'
+    ]);
+    return (text || '')
+      .toLowerCase()
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .split(/\s+/)
+      .map(word => word.trim())
+      .filter(word => word.length > 1 && !stopwords.has(word));
+  }
+
+  function extractKeywords(item){
+    const source = `${item.title || ''} ${item.selected_text || ''} ${item.source_platform || ''}`;
+    const counts = new Map();
+    normalizeWords(source).forEach(word => counts.set(word, (counts.get(word) || 0) + 1));
+    const platform = item.source_platform || detectPlatform(item.source_url);
+    if(platform && platform !== 'web') counts.set(platform, (counts.get(platform) || 0) + 2);
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 5)
+      .map(([word]) => word);
+  }
+
+  function makeSummary(item){
+    const title = item.title || 'Untitled';
+    const text = (item.selected_text || '').trim();
+    if(text){
+      const sentences = text
+        .replace(/\s+/g, ' ')
+        .split(/[.!?。！？]\s+|\n+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(' ');
+      return sentences.length > 160 ? `${sentences.slice(0, 157)}...` : sentences;
+    }
+    const platform = item.source_platform || detectPlatform(item.source_url);
+    if(platform === 'youtube'){
+      return `"${title}" 영상은 나중에 다시 볼 가치가 있어 저장된 항목입니다. 다음 단계에서 자막/메모 기반 요약을 붙이면 더 풍부해집니다.`;
+    }
+    if(platform === 'linkedin'){
+      return `"${title}" LinkedIn 게시물은 업무 인사이트나 레퍼런스로 다시 확인하기 위해 저장된 항목입니다.`;
+    }
+    return `"${title}" 링크는 개인 지식 DB에 보관된 자료입니다. 선택 텍스트를 함께 저장하면 더 정확한 요약이 만들어집니다.`;
+  }
+
+  function enrichItems(items){
+    return items.map(item => ({
+      ...item,
+      summary: makeSummary(item),
+      keywords: extractKeywords(item)
+    }));
+  }
+
+  function buildRelations(items){
+    const relations = [];
+    for(let i = 0; i < items.length; i++){
+      for(let j = i + 1; j < items.length; j++){
+        const a = items[i];
+        const b = items[j];
+        const shared = a.keywords.filter(keyword => b.keywords.includes(keyword));
+        if(shared.length){
+          relations.push({
+            source: i,
+            target: j,
+            shared,
+            score: shared.length,
+            a,
+            b
+          });
+        }
+      }
+    }
+    return relations.sort((a, b) => b.score - a.score).slice(0, 12);
+  }
+
+  function shortTitle(title){
+    const text = title || 'Untitled';
+    return text.length > 22 ? `${text.slice(0, 20)}...` : text;
+  }
+
+  function renderKnowledgeGraph(){
+    const panel = document.getElementById('knowledgePanel');
+    const wrap = document.getElementById('graphWrap');
+    const relationList = document.getElementById('relationList');
+    if(!panel || !wrap || !relationList) return;
+    if(!currentSavedItems.length){
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = 'block';
+    relationList.innerHTML = '';
+
+    const items = currentSavedItems.slice(0, 12);
+    const relations = buildRelations(items);
+    const width = 920;
+    const height = 360;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) * 0.34;
+    const positions = items.map((item, index) => {
+      const angle = (Math.PI * 2 * index) / Math.max(items.length, 1) - Math.PI / 2;
+      return {
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius,
+        item
+      };
+    });
+
+    wrap.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', '저장 콘텐츠 지식 그래프');
+
+    relations.forEach(rel => {
+      const from = positions[rel.source];
+      const to = positions[rel.target];
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'graph-edge');
+      line.setAttribute('x1', from.x);
+      line.setAttribute('y1', from.y);
+      line.setAttribute('x2', to.x);
+      line.setAttribute('y2', to.y);
+      svg.appendChild(line);
+    });
+
+    positions.forEach(({ x, y, item }, index) => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'graph-node');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', index === 0 ? 25 : 21);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = String(index + 1);
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'graph-label');
+      label.setAttribute('x', x);
+      label.setAttribute('y', y + 42);
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = shortTitle(item.title);
+      group.append(circle, text, label);
+      svg.appendChild(group);
+    });
+    wrap.appendChild(svg);
+
+    if(!relations.length){
+      const empty = document.createElement('div');
+      empty.className = 'saved-empty';
+      empty.textContent = '아직 공통 키워드가 있는 연결이 없습니다. 선택 텍스트를 함께 저장하면 그래프가 더 잘 연결됩니다.';
+      relationList.appendChild(empty);
+      return;
+    }
+
+    relations.slice(0, 6).forEach(rel => {
+      const row = document.createElement('div');
+      row.className = 'relation-item';
+      const a = document.createElement('strong');
+      a.textContent = shortTitle(rel.a.title);
+      const b = document.createElement('strong');
+      b.textContent = shortTitle(rel.b.title);
+      const keywords = document.createElement('span');
+      keywords.textContent = `연결 키워드: ${rel.shared.join(', ')}`;
+      row.append(a, document.createTextNode(' ↔ '), b, document.createElement('br'), keywords);
+      relationList.appendChild(row);
+    });
+  }
+
   function renderSavedLinks(items){
     const list = document.getElementById('savedList');
     if(!list) return;
     list.innerHTML = '';
     if(!items.length){
+      currentSavedItems = [];
+      renderKnowledgeGraph();
       setSavedListMessage('아직 저장된 링크가 없습니다. YouTube나 LinkedIn에서 Save to LinkVault를 눌러 저장해보세요.');
       return;
     }
-    items.forEach(item => {
+    currentSavedItems = enrichItems(items);
+    currentSavedItems.forEach(item => {
       const row = document.createElement('article');
       row.className = 'saved-item';
 
@@ -984,6 +1210,27 @@
       meta.append(platform, date);
 
       main.append(title, url, meta);
+      const summary = document.createElement('div');
+      summary.className = 'saved-summary';
+      const summaryLabel = document.createElement('strong');
+      summaryLabel.textContent = '요약';
+      const summaryText = document.createElement('p');
+      summaryText.textContent = item.summary;
+      summary.append(summaryLabel, summaryText);
+      main.appendChild(summary);
+
+      if(item.keywords.length){
+        const keywords = document.createElement('div');
+        keywords.className = 'keyword-row';
+        item.keywords.forEach(keyword => {
+          const chip = document.createElement('span');
+          chip.className = 'keyword-chip';
+          chip.textContent = keyword;
+          keywords.appendChild(chip);
+        });
+        main.appendChild(keywords);
+      }
+
       if(item.selected_text){
         const quote = document.createElement('p');
         quote.className = 'saved-quote';
@@ -1001,6 +1248,7 @@
       row.append(main, open);
       list.appendChild(row);
     });
+    renderKnowledgeGraph();
   }
 
   async function loadSavedLinks(e){
