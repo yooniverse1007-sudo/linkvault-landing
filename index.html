@@ -121,6 +121,31 @@
   }
   .hero-form input::placeholder{color:var(--ash)}
   .hero-form input:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+  .hero-install{
+    background:var(--canvas);border:1px solid var(--hairline);
+    border-radius:var(--r-lg);padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.08);
+  }
+  .hero-install h2{font-size:32px;max-width:none;margin-bottom:12px}
+  .hero-install p{font-size:15px;color:var(--mute);line-height:1.6;margin-bottom:20px}
+  .install-card{
+    background:var(--surface-soft);border:1px solid var(--hairline);
+    border-radius:var(--r-md);padding:16px;margin-top:18px;
+  }
+  .install-card strong{display:block;color:var(--ink);font-size:14px;margin-bottom:8px}
+  .install-card ol{padding-left:20px;color:var(--mute);font-size:14px;line-height:1.7}
+  .bookmarklet-config{display:grid;gap:8px;margin:18px 0 12px}
+  .bookmarklet-config label{font-size:13px;font-weight:800;color:var(--ink)}
+  .bookmarklet-config input{
+    width:100%;font-family:var(--text);font-size:14px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:12px 14px;color:var(--ink);outline:none;
+  }
+  .bookmarklet-config input:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .bookmarklet-warning{
+    display:none;background:#fff5d6;color:#5b4200;border:1px solid #e7c865;
+    border-radius:var(--r-md);padding:12px;font-size:13px;line-height:1.55;margin-top:12px;
+  }
+  .bookmarklet-warning.show{display:block}
 
   .masonry{columns:3;column-gap:8px}
   .pin{
@@ -353,6 +378,43 @@
   }
   .success h3{margin-bottom:10px}
   .success p{font-size:15px;color:var(--mute);line-height:1.55}
+  .bookmarklet-panel{
+    background:var(--canvas);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-lg);
+    padding:28px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:24px;
+    align-items:center;
+    box-shadow:0 12px 36px rgba(0,0,0,.06);
+  }
+  .bookmarklet-panel h2{font-size:32px}
+  .bookmarklet-panel p{font-size:15px;color:var(--mute);line-height:1.6;margin-top:10px;max-width:660px}
+  .bookmarklet-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:190px;
+    border-radius:var(--r-md);
+    background:var(--primary);
+    color:#fff;
+    font-weight:800;
+    padding:16px 18px;
+    box-shadow:0 10px 24px rgba(230,0,35,.22);
+  }
+  .bookmarklet-help{font-size:13px;color:var(--ash);margin-top:10px}
+  .save-preview{
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    background:var(--surface-soft);
+    padding:14px;
+    margin-bottom:18px;
+  }
+  .save-preview strong{display:block;color:var(--ink);font-size:16px;line-height:1.35;margin-bottom:8px}
+  .save-preview span{display:block;color:var(--mute);font-size:13px;line-height:1.45;word-break:break-all}
+  .save-preview p{font-size:13px;color:var(--body);line-height:1.5;margin-top:10px;max-height:90px;overflow:auto}
+  #notion-save,#youtube-sync,.cta-strip{display:none}
 
   @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} }
   @media (max-width:768px){
@@ -367,6 +429,7 @@
     .nav-links a:not(.signup){display:none}
     .cta-strip .wrap{flex-direction:column;align-items:flex-start}
     .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
+    .bookmarklet-panel{grid-template-columns:1fr}
   }
   @media (max-width:480px){
     .wrap{padding:0 16px} h1{font-size:36px}
@@ -382,6 +445,7 @@
   <div class="wrap">
     <div class="brand"><span class="dot"></span>LinkVault</div>
     <div class="nav-links">
+      <a href="#bookmarklet" class="mute">북마클릿</a>
       <a href="#features" class="mute">기능</a>
       <a href="#how" class="mute">작동 방식</a>
       <button class="btn btn-primary signup" onclick="openModal()">사전 등록</button>
@@ -393,47 +457,34 @@
   <div class="wrap">
     <div class="hero">
       <div>
-        <h1>흩어진 링크를<br>가치 있는 <span class="accent">지식</span>으로.</h1>
-        <p class="sub">유튜브, 링크드인, 아티클까지 — 한 번의 공유로 모으면 AI가 알아서 요약하고 정리합니다. 필요할 때 다시 꺼내 쓰는 나만의 지식 금고.</p>
-        <form class="hero-form" onsubmit="return heroSubmit(event)">
-          <input type="email" id="heroEmail" placeholder="이메일 주소를 입력하세요" required>
-          <button type="submit" class="btn btn-primary btn-lg">먼저 받아보기</button>
-        </form>
+        <div class="pill"><span class="live"></span>오늘 MVP: 북마클릿 저장</div>
+        <h1>보고 있는 링크를<br><span class="accent">한 번에 저장</span>하세요.</h1>
+        <p class="sub">YouTube, LinkedIn, 아티클을 보다가 북마크바의 Save to LinkVault를 누르면 현재 URL, 제목, 선택한 텍스트가 Supabase DB에 저장됩니다.</p>
+        <div class="hero-actions">
+          <a href="#bookmarklet" class="btn btn-primary btn-lg">북마클릿 설치하기</a>
+          <button type="button" class="btn btn-secondary btn-lg" onclick="openSampleSave()">저장 화면 테스트</button>
+        </div>
       </div>
-      <div class="hero-product" aria-label="LinkVault 제품 미리보기">
-        <div class="hero-product-top">
-          <div class="hero-product-title">LinkVault 라이브러리</div>
-          <div class="hero-product-badge">YouTube 연결됨</div>
+      <div class="hero-install" id="bookmarklet">
+        <div class="eyebrow">Install</div>
+        <h2>Save to LinkVault</h2>
+        <p>아래 빨간 버튼을 브라우저 북마크바로 드래그하세요. 설치 후 어떤 페이지에서든 버튼을 누르면 저장 모달이 열립니다.</p>
+        <div class="bookmarklet-config" id="appUrlConfig" style="display:none">
+          <label for="appUrlInput">LinkVault 앱 주소</label>
+          <input id="appUrlInput" type="url" placeholder="https://your-linkvault.vercel.app" oninput="buildBookmarklet()">
         </div>
-        <div class="hero-select">
-          <span>재생목록</span>
-          <strong>LinkVault Inbox - 리서치 영상</strong>
+        <a class="bookmarklet-button" id="bookmarkletLink" href="#">Save to LinkVault</a>
+        <div class="bookmarklet-warning" id="bookmarkletWarning">지금은 file:// 미리보기라 이 상태로 북마클릿을 설치하면 YouTube에서 동작하지 않을 수 있습니다. Vercel 배포 URL 같은 https 주소를 입력한 뒤 버튼을 북마크바로 드래그하세요.</div>
+        <div class="bookmarklet-help" id="bookmarkletHelp">Vercel 배포 페이지에서 이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.</div>
+        <div class="install-card">
+          <strong>저장되는 데이터</strong>
+          <ol>
+            <li>현재 페이지 URL</li>
+            <li>페이지 제목</li>
+            <li>드래그해 선택한 텍스트</li>
+            <li>소유자 이메일</li>
+          </ol>
         </div>
-        <button class="hero-import" type="button" onclick="document.getElementById('youtube-sync').scrollIntoView({behavior:'smooth'})">영상 12개 가져오기</button>
-        <div class="hero-video-list">
-          <div class="hero-video">
-            <div class="hero-thumb red">YT</div>
-            <div>
-              <strong>AI 리서치 워크플로우</strong>
-              <span>18분 · 요약 완료 · 태그 3개</span>
-            </div>
-          </div>
-          <div class="hero-video">
-            <div class="hero-thumb dark">노트</div>
-            <div>
-              <strong>Notion 지식 베이스 만들기</strong>
-              <span>12분 · 나중에 읽기 · 출처 저장</span>
-            </div>
-          </div>
-          <div class="hero-video">
-            <div class="hero-thumb green">학습</div>
-            <div>
-              <strong>제품 학습 큐 정리하기</strong>
-              <span>9분 · 핵심 문장 5개 추출</span>
-            </div>
-          </div>
-        </div>
-        <p class="hero-product-note">“나중에 보기” 대신 사용자가 만든 playlist를 연결해 영상 목록을 안전하게 가져오는 제품 미리보기입니다.</p>
       </div>
     </div>
   </div>
@@ -650,6 +701,41 @@
   </div>
 </footer>
 
+<div class="scrim" id="saveScrim" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="mclose" onclick="closeSaveModal()" aria-label="닫기">x</button>
+      <div id="saveFormView">
+        <h3>LinkVault에 저장</h3>
+        <p class="msub">현재 페이지 정보를 확인하고 저장하세요. 다음 단계에서 AI 요약 카드와 지식 그래프를 붙일 수 있습니다.</p>
+        <div class="save-preview">
+          <strong id="savePreviewTitle">Untitled</strong>
+          <span id="savePreviewUrl"></span>
+          <p id="savePreviewText" style="display:none"></p>
+        </div>
+        <form onsubmit="return saveLinkSubmit(event)">
+          <div class="field">
+            <label for="saveEmail">내 이메일</label>
+            <input type="email" id="saveEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="saveTitle">제목</label>
+            <input type="text" id="saveTitle" placeholder="저장할 제목">
+          </div>
+          <p class="errmsg" id="saveErrMsg"></p>
+          <button type="submit" class="btn btn-primary" id="saveSubmitBtn">저장하기</button>
+        </form>
+      </div>
+      <div id="saveSuccessView" class="success" style="display:none">
+        <div class="check">✓</div>
+        <h3>저장 완료</h3>
+        <p>LinkVault DB에 저장했습니다. 이제 이 데이터를 기반으로 요약 카드와 지식 그래프를 붙일 수 있어요.</p>
+        <button class="btn btn-secondary" style="margin-top:24px;width:100%;padding:14px" onclick="closeSaveModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="scrim" id="scrim" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-head">
@@ -702,6 +788,155 @@
   }
 
   const scrim = document.getElementById('scrim');
+  const saveScrim = document.getElementById('saveScrim');
+  let pendingSave = {
+    url: '',
+    title: '',
+    text: ''
+  };
+
+  function buildBookmarklet(){
+    const link = document.getElementById('bookmarkletLink');
+    if(!link) return;
+    const input = document.getElementById('appUrlInput');
+    const config = document.getElementById('appUrlConfig');
+    const help = document.getElementById('bookmarkletHelp');
+    const warning = document.getElementById('bookmarkletWarning');
+    const isFilePreview = location.protocol === 'file:';
+    const currentAppUrl = `${location.origin}${location.pathname}`;
+    const savedAppUrl = localStorage.getItem('linkvault_app_url') || '';
+    if(config){
+      config.style.display = isFilePreview ? 'grid' : 'none';
+    }
+    if(help){
+      help.textContent = isFilePreview
+        ? '배포 URL을 입력한 뒤 새로 생성된 버튼을 북마크바로 드래그하세요.'
+        : '이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.';
+    }
+    if(input && !input.value){
+      input.value = isFilePreview ? savedAppUrl : currentAppUrl;
+    }
+    const appUrl = input?.value.trim().replace(/\/$/, '') || currentAppUrl;
+    if(input?.value.trim()){
+      localStorage.setItem('linkvault_app_url', appUrl);
+    }
+    warning?.classList.toggle('show', isFilePreview);
+    const code = `javascript:(()=>{const app='${appUrl.replace(/'/g, "\\'")}';if(!/^https?:/.test(app)){alert('LinkVault 앱 주소를 https 배포 URL로 설정한 뒤 북마클릿을 다시 설치해 주세요.');return;}const u=encodeURIComponent(location.href);const t=encodeURIComponent(document.title||'');const selected=window.getSelection?String(window.getSelection()):'';const s=encodeURIComponent(selected.slice(0,4000));window.open(app+'?save=1&url='+u+'&title='+t+'&text='+s,'_blank','noopener,noreferrer,width=520,height=720');})();`;
+    link.href = code;
+  }
+
+  function detectPlatform(url){
+    try{
+      const host = new URL(url).hostname.replace(/^www\./,'');
+      if(host.includes('youtube.com') || host.includes('youtu.be')) return 'youtube';
+      if(host.includes('linkedin.com')) return 'linkedin';
+      if(host.includes('instagram.com')) return 'instagram';
+      return host;
+    }catch(_err){
+      return 'web';
+    }
+  }
+
+  function openSaveModal(data){
+    pendingSave = {
+      url: data.url || '',
+      title: data.title || '',
+      text: data.text || ''
+    };
+    const savedEmail = localStorage.getItem('linkvault_save_email') || '';
+    document.getElementById('saveFormView').style.display='block';
+    document.getElementById('saveSuccessView').style.display='none';
+    document.getElementById('saveErrMsg').classList.remove('show');
+    const btn = document.getElementById('saveSubmitBtn');
+    btn.disabled = false;
+    btn.textContent = '저장하기';
+    document.getElementById('saveEmail').value = savedEmail;
+    document.getElementById('saveTitle').value = pendingSave.title;
+    document.getElementById('savePreviewTitle').textContent = pendingSave.title || 'Untitled';
+    document.getElementById('savePreviewUrl').textContent = pendingSave.url;
+    const textEl = document.getElementById('savePreviewText');
+    if(pendingSave.text){
+      textEl.textContent = pendingSave.text;
+      textEl.style.display = 'block';
+    }else{
+      textEl.textContent = '';
+      textEl.style.display = 'none';
+    }
+    saveScrim.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeSaveModal(){
+    saveScrim.classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  function showSaveError(msg){
+    const el=document.getElementById('saveErrMsg');
+    el.textContent=msg;
+    el.classList.add('show');
+  }
+
+  function showSaveSuccess(){
+    document.getElementById('saveFormView').style.display='none';
+    document.getElementById('saveSuccessView').style.display='block';
+  }
+
+  async function saveLinkSubmit(e){
+    e.preventDefault();
+    const email = document.getElementById('saveEmail').value.trim();
+    const title = document.getElementById('saveTitle').value.trim() || pendingSave.title || 'Untitled';
+    const btn = document.getElementById('saveSubmitBtn');
+    document.getElementById('saveErrMsg').classList.remove('show');
+
+    if(!pendingSave.url){
+      showSaveError('저장할 URL이 없습니다.');
+      return false;
+    }
+    if(!configured || !supabaseClient){
+      showSaveError('Supabase 설정을 먼저 확인해 주세요.');
+      return false;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+    try{
+      localStorage.setItem('linkvault_save_email', email);
+      const { error } = await supabaseClient
+        .from('saved_links')
+        .insert({
+          owner_email: email,
+          source_url: pendingSave.url,
+          title: title,
+          selected_text: pendingSave.text || null,
+          source_platform: detectPlatform(pendingSave.url)
+        });
+
+      if(error){
+        console.error(error);
+        showSaveError(`저장 실패: ${error.message || 'Supabase 테이블/정책을 확인해 주세요.'}`);
+        btn.disabled = false;
+        btn.textContent = '저장하기';
+        return false;
+      }
+      showSaveSuccess();
+    }catch(err){
+      console.error(err);
+      showSaveError('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      btn.disabled = false;
+      btn.textContent = '저장하기';
+    }
+    return false;
+  }
+
+  function openSampleSave(){
+    openSaveModal({
+      url: 'https://www.youtube.com/watch?v=abc123',
+      title: 'Demo YouTube Video',
+      text: 'Important selected quote'
+    });
+  }
+
   function openModal(){
     document.getElementById('formView').style.display='block';
     document.getElementById('successView').style.display='none';
@@ -713,7 +948,25 @@
     scrim.classList.remove('open');
     document.body.style.overflow='';
   }
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      closeModal();
+      closeSaveModal();
+    }
+  });
+
+  function initSaveFromQuery(){
+    const params = new URLSearchParams(location.search);
+    if(params.get('save') !== '1') return;
+    openSaveModal({
+      url: params.get('url') || '',
+      title: params.get('title') || '',
+      text: params.get('text') || ''
+    });
+  }
+
+  buildBookmarklet();
+  initSaveFromQuery();
 
   function showSuccess(){
     document.getElementById('formView').style.display='none';

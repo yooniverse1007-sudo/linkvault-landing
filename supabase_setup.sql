@@ -80,3 +80,36 @@ create policy "users can manage own saved youtube videos"
   to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- ============================================================
+-- MVP: Bookmarklet saved links
+-- Users can save the current page through the Save to LinkVault bookmarklet.
+-- This first version stores a lightweight owner email instead of requiring auth,
+-- so it can be tested today from a static landing page.
+-- ============================================================
+
+create table if not exists public.saved_links (
+  id              uuid primary key default gen_random_uuid(),
+  owner_email     text not null,
+  source_url      text not null,
+  title           text,
+  selected_text   text,
+  source_platform text,
+  created_at      timestamptz not null default now()
+);
+
+alter table public.saved_links enable row level security;
+
+drop policy if exists "anyone can save a link" on public.saved_links;
+
+create policy "anyone can save a link"
+  on public.saved_links
+  for insert
+  to anon, authenticated
+  with check (
+    owner_email <> ''
+    and source_url <> ''
+  );
+
+create index if not exists saved_links_owner_email_created_at_idx
+  on public.saved_links (owner_email, created_at desc);
