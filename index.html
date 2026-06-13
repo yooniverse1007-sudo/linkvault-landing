@@ -1006,8 +1006,10 @@
     const stopwords = new Set([
       'the','and','for','with','from','this','that','you','your','are','was','were','have','has','had','how','what','why',
       'can','will','into','about','using','use','make','made','build','new','best','part','full','video','post','page',
+      'tips','guide','tutorial','learn','learning','review','demo','example','examples','thing','things','good','great',
       '으로','에서','하는','하고','있는','없는','것을','대한','그리고','하지만','영상','콘텐츠','링크','저장','페이지',
       '관련','바로','현재','선택','텍스트','원문','보기','만들기','방법','하는법','입니다','합니다','합니다',
+      '정리','기반','단계','사용','위한','좋은','이런','저런','이번','오늘','내일','사례','예시',
       'youtube','youtu','linkedin','instagram','https','http','www','com','watch'
     ]);
     return (text || '')
@@ -1034,13 +1036,6 @@
   function scoreConcepts(text, baseWeight, scores){
     const words = normalizeWords(text).slice(0, 120);
     words.forEach(word => addCandidate(scores, word, baseWeight));
-    for(let size = 2; size <= 3; size++){
-      for(let i = 0; i <= words.length - size; i++){
-        const phrase = words.slice(i, i + size);
-        if(phrase.some(word => word.length < 2)) continue;
-        addCandidate(scores, phrase.join(' '), baseWeight * (size + 1.5));
-      }
-    }
     return words;
   }
 
@@ -1050,8 +1045,8 @@
     scoreConcepts(item.selected_text || '', 1.4, scores);
     const keywords = [...scores.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .filter(([term]) => !term.includes('http'))
-      .slice(0, 6)
+      .filter(([term]) => !term.includes('http') && !term.includes(' '))
+      .slice(0, 8)
       .map(([word]) => word);
     return keywords.length ? keywords : [item.source_platform || detectPlatform(item.source_url) || 'web'];
   }
@@ -1102,7 +1097,7 @@
         const exactShared = a.keywords.filter(keyword => b.keywords.includes(keyword));
         const termShared = a.relationTerms.filter(term => b.relationTerms.includes(term));
         const shared = [...new Set([...exactShared, ...termShared])].slice(0, 5);
-        const strongShared = shared.filter(term => term.includes(' ') || term.length > 3);
+        const strongShared = shared.filter(term => term.length > 3);
         if(exactShared.length || strongShared.length >= 2){
           relations.push({
             source: i,
