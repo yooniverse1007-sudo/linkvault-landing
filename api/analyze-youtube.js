@@ -1,4 +1,8 @@
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be']);
+const YOUTUBE_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36 LinkVault/1.0',
+  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
+};
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -56,6 +60,45 @@ function extractInitialPlayerResponse(html) {
   return null;
 }
 
+function extractInnertubeConfig(html = '') {
+  const apiKey =
+    html.match(/"INNERTUBE_API_KEY":"([^"]+)"/)?.[1] ||
+    html.match(/INNERTUBE_API_KEY['"]?\s*:\s*['"]([^'"]+)/)?.[1] ||
+    '';
+  const clientVersion =
+    html.match(/"INNERTUBE_CONTEXT_CLIENT_VERSION":"([^"]+)"/)?.[1] ||
+    html.match(/clientVersion['"]?\s*:\s*['"]([^'"]+)/)?.[1] ||
+    '';
+  return { apiKey, clientVersion };
+}
+
+async function fetchInnertubeTracks(videoId, html) {
+  const { apiKey, clientVersion } = extractInnertubeConfig(html);
+  if (!apiKey) return [];
+
+  const response = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...YOUTUBE_HEADERS
+    },
+    body: JSON.stringify({
+      context: {
+        client: {
+          clientName: 'WEB',
+          clientVersion: clientVersion || '2.20240601.00.00',
+          hl: 'ko',
+          gl: 'KR'
+        }
+      },
+      videoId
+    })
+  });
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+}
+
 function chooseCaptionTrack(tracks = []) {
   if (!tracks.length) return null;
   const priorities = ['ko', 'en'];
@@ -106,7 +149,7 @@ function parseTimedTextTrackList(xml = '', videoId) {
 async function fetchTimedTextTracks(videoId) {
   const listUrl = `https://www.youtube.com/api/timedtext?type=list&v=${encodeURIComponent(videoId)}`;
   const response = await fetch(listUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
+    headers: YOUTUBE_HEADERS
   });
   if (!response.ok) return [];
   const xml = await response.text();
@@ -131,7 +174,7 @@ function parseTranscriptJson3(data) {
 async function fetchTranscript(videoId) {
   const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
   const page = await fetch(watchUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
+    headers: YOUTUBE_HEADERS
   });
   if (!page.ok) {
     return { status: 'youtube_page_failed', transcript: '', lines: [] };
@@ -140,6 +183,9 @@ async function fetchTranscript(videoId) {
   const html = await page.text();
   const player = extractInitialPlayerResponse(html);
   let tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (!tracks.length) {
+    tracks = await fetchInnertubeTracks(videoId, html);
+  }
   if (!tracks.length) {
     tracks = await fetchTimedTextTracks(videoId);
   }
@@ -155,7 +201,7 @@ async function fetchTranscript(videoId) {
   for (const track of orderedTracks) {
     const transcriptUrl = `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
     const caption = await fetch(transcriptUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 LinkVault/1.0' }
+      headers: YOUTUBE_HEADERS
     });
     if (!caption.ok) continue;
 
