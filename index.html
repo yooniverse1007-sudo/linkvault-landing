@@ -453,6 +453,11 @@
     border:1px solid var(--hairline);background:var(--canvas);border-radius:var(--r-md);
     color:var(--ink);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;
   }
+  .saved-actions{display:flex;gap:8px;align-items:center}
+  .saved-delete{
+    border:1px solid #f0b8bf;background:#fff5f6;border-radius:var(--r-md);
+    color:var(--primary);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;cursor:pointer;
+  }
   .knowledge-panel{
     border:1px solid var(--hairline);border-radius:var(--r-lg);
     background:var(--canvas);padding:28px;margin-top:20px;
@@ -1617,10 +1622,42 @@
       open.rel = 'noopener noreferrer';
       open.textContent = '원문 열기';
 
-      row.append(main, open);
+      const remove = document.createElement('button');
+      remove.className = 'saved-delete';
+      remove.type = 'button';
+      remove.textContent = '삭제';
+      remove.onclick = () => deleteSavedLink(item);
+
+      const actions = document.createElement('div');
+      actions.className = 'saved-actions';
+      actions.append(open, remove);
+
+      row.append(main, actions);
       list.appendChild(row);
     });
     renderKnowledgeGraph();
+  }
+
+  async function deleteSavedLink(item){
+    if(!item?.id || !supabaseClient) return;
+    const ok = confirm(`삭제할까요?\n${item.title || item.source_url || 'Untitled'}`);
+    if(!ok) return;
+    try{
+      const email = item.owner_email || localStorage.getItem('linkvault_save_email') || '';
+      const { error } = await supabaseClient
+        .from('saved_links')
+        .delete()
+        .eq('id', item.id)
+        .eq('owner_email', email);
+      if(error){
+        alert(`삭제 실패: ${error.message || 'Supabase 삭제 정책을 확인해 주세요.'}`);
+        return;
+      }
+      loadSavedLinks();
+    }catch(err){
+      console.error(err);
+      alert('네트워크 오류로 삭제하지 못했습니다.');
+    }
   }
 
   async function loadSavedLinks(e){

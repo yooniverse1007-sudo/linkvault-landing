@@ -103,6 +103,7 @@ alter table public.saved_links enable row level security;
 
 drop policy if exists "anyone can save a link" on public.saved_links;
 drop policy if exists "anyone can read saved links" on public.saved_links;
+drop policy if exists "anyone can delete a saved link" on public.saved_links;
 
 create policy "anyone can save a link"
   on public.saved_links
@@ -116,6 +117,12 @@ create policy "anyone can save a link"
 create policy "anyone can read saved links"
   on public.saved_links
   for select
+  to anon, authenticated
+  using (true);
+
+create policy "anyone can delete a saved link"
+  on public.saved_links
+  for delete
   to anon, authenticated
   using (true);
 
