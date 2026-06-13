@@ -190,25 +190,33 @@ function normalizeList(value, limit) {
     .slice(0, limit);
 }
 
+function transcriptPreview(transcript, limit = 420) {
+  return transcript
+    .split('\n')
+    .slice(0, 10)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, limit);
+}
+
 function fallbackMarkdownSummary({ title, sourceUrl, transcript, keywords }) {
-  const summary = transcript.split('\n').slice(0, 8).join(' ').slice(0, 600);
+  const preview = transcriptPreview(transcript, 700);
   const links = keywords.slice(0, 6).map(keyword => `[[${keyword}]]`);
   return [
     '---',
-    'type: source_summary',
+    'type: transcript_preview',
     `title: ${yamlString(title || 'Untitled')}`,
     `source_url: ${yamlString(sourceUrl || '')}`,
+    'status: missing_openai_key',
     '---',
     '',
     `# ${title || 'Untitled'}`,
     '',
-    '## 핵심 요약',
-    summary || '자막을 불러왔지만 요약을 생성하지 못했습니다.',
+    '## 자막 미리보기',
+    preview || '자막을 불러왔지만 LLM 요약은 생성되지 않았습니다.',
     '',
-    '## 주요 개념',
-    ...links.map(link => `- ${link}`),
-    '',
-    '## 연결 후보',
+    '## 임시 개념',
     ...links.map(link => `- ${link}`)
   ].join('\n');
 }
@@ -219,7 +227,7 @@ async function summarizeWithOpenAI({ title, url, transcript, markdownSource }) {
     const keywords = fallbackKeywords(`${title} ${transcript}`);
     const markdownSummary = fallbackMarkdownSummary({ title, sourceUrl: url, transcript, keywords });
     return {
-      summary: transcript.split('\n').slice(0, 8).join(' ').slice(0, 300),
+      summary: '',
       keywords,
       topics: keywords.slice(0, 5),
       wikilinks: extractWikiLinks(markdownSummary),
@@ -243,8 +251,9 @@ async function summarizeWithOpenAI({ title, url, transcript, markdownSource }) {
           role: 'system',
           content: [
             'You turn YouTube transcripts into a Korean personal knowledge wiki.',
-            'Return JSON only. No markdown fences.',
-            'Wikilinks must be short noun concepts in Korean or English, like [[Second Brain]] or [[지식 그래프]].',
+            'Return valid JSON only. Do not use markdown fences.',
+            'The summary must synthesize the full transcript, not copy opening captions.',
+            'Wikilinks must be short reusable noun concepts, like [[Second Brain]] or [[지식 그래프]].',
             'Avoid long phrases, full sentences, generic words, and duplicate concepts.'
           ].join(' ')
         },
@@ -252,14 +261,19 @@ async function summarizeWithOpenAI({ title, url, transcript, markdownSource }) {
           role: 'user',
           content: [
             'Create a wiki-style note from this transcript markdown.',
-            'Return this JSON schema:',
-            '{"summary":"Korean 2-4 sentence summary","keywords":["single-word or short noun keywords, 6-10"],"topics":["broader topics, 3-6"],"wikilinks":["concept names without brackets, 6-12"],"markdown_summary":"Markdown note with YAML frontmatter, sections, and [[wikilinks]]"}',
+            'Return this exact JSON schema:',
+            '{"summary":"한국어 3-5문장 핵심 요약","keywords":["단어 또는 짧은 명사구 6-10개"],"topics":["상위 주제 3-6개"],"wikilinks":["대괄호 없는 개념명 6-12개"],"markdown_summary":"YAML frontmatter와 [[wikilinks]]를 포함한 한국어 Markdown 노트"}',
             '',
-            'markdown_summary requirements:',
-            '- Korean by default.',
-            '- Include YAML frontmatter with type, title, keywords, topics, wikilinks.',
-            '- Include sections: 핵심 요약, 주요 개념, 기억할 문장, 연결 후보.',
-            '- Use [[wikilinks]] for important reusable concepts.',
+            'summary requirements:',
+            '- Explain the main argument, useful insight, and why this source matters.',
+            '- Do not mention that this is a transcript.',
+            '- Do not simply quote the first lines.',
+            '',
+            'markdown_summary sections:',
+            '- 핵심 요약',
+            '- 주요 개념',
+            '- 기억할 문장',
+            '- 연결 후보',
             '',
             clippedSource
           ].join('\n')

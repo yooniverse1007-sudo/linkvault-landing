@@ -87,6 +87,20 @@ begin
       to anon, authenticated
       using (true);
   end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'saved_links'
+      and policyname = 'anyone can update a saved link'
+  ) then
+    create policy "anyone can update a saved link"
+      on public.saved_links
+      for update
+      to anon, authenticated
+      using (true)
+      with check (true);
+  end if;
 end $$;
 
 create index if not exists saved_links_owner_email_created_at_idx

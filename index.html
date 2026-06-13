@@ -451,7 +451,7 @@
   }
   .saved-open{
     border:1px solid var(--hairline);background:var(--canvas);border-radius:var(--r-md);
-    color:var(--ink);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;
+    color:var(--ink);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;cursor:pointer;
   }
   .saved-actions{display:flex;gap:8px;align-items:center}
   .saved-delete{
@@ -1339,6 +1339,9 @@
     if(item.summary){
       return item.summary;
     }
+    if(item.transcript_status === 'missing_openai_key' && item.transcript_excerpt){
+      return item.transcript_excerpt.replace(/\s+/g, ' ').slice(0, 260);
+    }
     const markdownSummary = markdownLead(item.markdown_summary);
     if(markdownSummary){
       return markdownSummary;
@@ -1364,10 +1367,30 @@
     return `"${title}" 링크는 개인 지식 DB에 보관된 자료입니다. 선택 텍스트를 함께 저장하면 더 정확한 요약이 만들어집니다.`;
   }
 
+  function summaryLabelFor(item){
+    if(item.transcript_status === 'ok' && item.summary) return 'AI 요약';
+    if(item.transcript_status === 'missing_openai_key') return '자막 미리보기';
+    if(item.transcript_status && item.transcript_status !== 'ok') return '요약 대기';
+    return '요약';
+  }
+
+  function summaryStatusText(item){
+    const status = item.transcript_status || '';
+    if(status === 'ok') return 'OpenAI 분석 완료';
+    if(status === 'missing_openai_key') return 'OpenAI 키 없음: 요약 대신 자막 미리보기';
+    if(status === 'no_caption_track') return '자막 없음';
+    if(status === 'caption_fetch_failed') return '자막 불러오기 실패';
+    if(status === 'youtube_page_failed') return 'YouTube 페이지 접근 실패';
+    if(status === 'empty_caption') return '빈 자막';
+    return '';
+  }
+
   function enrichItems(items){
     return items.map(item => ({
       ...item,
       summary: makeSummary(item),
+      summaryLabel: summaryLabelFor(item),
+      summaryStatus: summaryStatusText(item),
       keywords: extractKeywords(item),
       relationTerms: extractRelationTerms(item),
       wikiConcepts: uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 16)
@@ -1599,10 +1622,18 @@
       const summary = document.createElement('div');
       summary.className = 'saved-summary';
       const summaryLabel = document.createElement('strong');
-      summaryLabel.textContent = '요약';
+      summaryLabel.textContent = item.summaryLabel || '요약';
       const summaryText = document.createElement('p');
       summaryText.textContent = item.summary;
       summary.append(summaryLabel, summaryText);
+      if(item.summaryStatus){
+        const status = document.createElement('p');
+        status.style.marginTop = '6px';
+        status.style.fontSize = '12px';
+        status.style.color = 'var(--ash)';
+        status.textContent = item.summaryStatus;
+        summary.appendChild(status);
+      }
       main.appendChild(summary);
 
       if(item.keywords.length){
@@ -1639,6 +1670,14 @@
 
       const actions = document.createElement('div');
       actions.className = 'saved-actions';
+      if((item.source_platform || detectPlatform(item.source_url)) === 'youtube'){
+        const reanalyze = document.createElement('button');
+        reanalyze.className = 'saved-open';
+        reanalyze.type = 'button';
+        reanalyze.textContent = '다시 분석';
+        reanalyze.onclick = () => reanalyzeSavedLink(item);
+        actions.append(reanalyze);
+      }
       actions.append(open, remove);
 
       row.append(main, actions);
@@ -1672,6 +1711,47 @@
     }catch(err){
       console.error(err);
       alert('네트워크 오류로 삭제하지 못했습니다.');
+    }
+  }
+
+  async function reanalyzeSavedLink(item){
+    if(!item?.id || !supabaseClient) return;
+    const ok = confirm(`다시 분석할까요?\n${item.title || item.source_url || 'Untitled'}`);
+    if(!ok) return;
+    try{
+      const analysis = await analyzeYouTubeLink(item.source_url, item.title || 'Untitled');
+      if(!analysis){
+        alert('분석 API를 호출하지 못했습니다.');
+        return;
+      }
+      const updatePayload = {
+        summary: analysis.summary || null,
+        keywords: Array.isArray(analysis.keywords) ? analysis.keywords : [],
+        topics: Array.isArray(analysis.topics) ? analysis.topics : [],
+        wikilinks: Array.isArray(analysis.wikilinks) ? analysis.wikilinks : [],
+        markdown_source: analysis.markdown_source || null,
+        markdown_summary: analysis.markdown_summary || null,
+        transcript_status: analysis.transcript_status || null,
+        transcript_excerpt: analysis.transcript_excerpt || null,
+        analyzed_at: new Date().toISOString()
+      };
+      const { data, error } = await supabaseClient
+        .from('saved_links')
+        .update(updatePayload)
+        .eq('id', item.id)
+        .select('id');
+      if(error){
+        alert(`다시 분석 저장 실패: ${error.message || 'Supabase 업데이트 정책을 확인해 주세요.'}`);
+        return;
+      }
+      if(!data || !data.length){
+        alert('DB에서 실제로 업데이트된 항목이 없습니다. Supabase SQL Editor에서 업데이트 정책을 실행해 주세요.');
+        return;
+      }
+      await loadSavedLinks();
+    }catch(err){
+      console.error(err);
+      alert('다시 분석 중 오류가 발생했습니다.');
     }
   }
 
