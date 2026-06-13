@@ -655,7 +655,7 @@
           <h1>위키</h1>
           <p>저장한 콘텐츠가 어떤 개념으로 연결되는지 봅니다. 왼쪽은 콘텐츠, 오른쪽은 개념입니다.</p>
         </div>
-        <button class="btn btn-secondary" type="button" onclick="renderKnowledgeGraph()">그래프 새로고침</button>
+        <button class="btn btn-secondary" type="button" onclick="refreshKnowledgeGraph()">그래프 새로고침</button>
       </div>
       <div class="page-panel">
     <div class="knowledge-panel" id="knowledgePanel">
@@ -1023,7 +1023,7 @@
       el.classList.toggle('active', el.dataset.page === page);
     });
     if(page === 'wiki'){
-      renderKnowledgeGraph();
+      refreshKnowledgeGraph();
     }
   }
 
@@ -1554,6 +1554,15 @@
     });
   }
 
+  async function refreshKnowledgeGraph(){
+    const email = document.getElementById('libraryEmail')?.value.trim() || localStorage.getItem('linkvault_save_email') || '';
+    if(email && configured && supabaseClient){
+      await loadSavedLinks();
+      return;
+    }
+    renderKnowledgeGraph();
+  }
+
   function renderSavedLinks(items){
     const list = document.getElementById('savedList');
     if(!list) return;
@@ -1653,7 +1662,9 @@
         alert(`삭제 실패: ${error.message || 'Supabase 삭제 정책을 확인해 주세요.'}`);
         return;
       }
-      loadSavedLinks();
+      currentSavedItems = currentSavedItems.filter(saved => saved.id !== item.id);
+      renderSavedLinks(currentSavedItems);
+      await loadSavedLinks();
     }catch(err){
       console.error(err);
       alert('네트워크 오류로 삭제하지 못했습니다.');
