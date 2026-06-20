@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkVault — 저장한 콘텐츠가 진짜 내 지식이 되는 곳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#e60023;
+    --primary-pressed:#cc001f;
+    --canvas:#ffffff;
+    --surface-soft:#fbfbf9;
+    --surface-card:#f6f6f3;
+    --secondary-bg:#e5e5e0;
+    --secondary-pressed:#c8c8c1;
+    --surface-dark:#262622;
+    --hairline:#dadad3;
+    --hairline-soft:#e5e5e0;
+    --ink:#000000;
+    --ink-soft:#211922;
+    --body:#33332e;
+    --charcoal:#262622;
+    --mute:#62625b;
+    --ash:#91918c;
+    --stone:#c8c8c1;
+    --on-dark:#ffffff;
+    --error:#9e0a0a;
+    --success-deep:#103c25;
+    --success-pale:#c7f0da;
+    --focus-outer:#435ee5;
+    --accent-purple:#7e238b;
+
+    --r-sm:8px; --r-md:16px; --r-lg:32px; --r-full:9999px;
+
+    --s-xxs:4px; --s-xs:6px; --s-sm:8px; --s-md:12px;
+    --s-lg:16px; --s-xl:24px; --s-xxl:32px; --s-section:64px;
+
+    --display:'Manrope',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+    --text:'Inter',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--text);
+    background:var(--surface-soft);
+    color:var(--body);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.4;
+  }
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  ::selection{background:var(--primary);color:#fff}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+
+  nav{
+    background:var(--surface-soft);
+    height:64px;display:flex;align-items:center;
+    position:sticky;top:0;z-index:50;
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .brand{
+    font-family:var(--display);font-weight:800;font-size:24px;
+    letter-spacing:-1.2px;color:var(--primary);
+    display:flex;align-items:center;gap:8px;
+  }
+  .brand .dot{
+    width:14px;height:14px;border-radius:var(--r-full);
+    background:var(--primary);display:inline-block;
+  }
+  .nav-links{display:flex;align-items:center;gap:24px}
+  .nav-links a{font-weight:600;font-size:16px;color:var(--ink)}
+  .nav-links a.mute{color:var(--mute)}
+
+  .btn{
+    font-family:var(--text);font-weight:700;font-size:14px;
+    border:none;cursor:pointer;border-radius:var(--r-md);
+    padding:11px 18px;line-height:1;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-pressed)}
+  .btn-primary:active{background:var(--primary-pressed);transform:translateY(1px)}
+  .btn-primary:disabled{background:var(--ash);cursor:not-allowed;transform:none}
+  .btn-secondary{background:var(--secondary-bg);color:var(--ink)}
+  .btn-secondary:hover{background:var(--secondary-pressed)}
+  .btn-lg{padding:15px 28px;font-size:16px}
+
+  header{padding:72px 0 64px}
+  .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--surface-card);color:var(--ink);
+    font-weight:700;font-size:12px;
+    padding:8px 14px;border-radius:var(--r-full);margin-bottom:24px;
+  }
+  .pill .live{
+    width:7px;height:7px;border-radius:var(--r-full);
+    background:var(--primary);animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(230,0,35,.45)}
+    70%{box-shadow:0 0 0 8px rgba(230,0,35,0)}
+    100%{box-shadow:0 0 0 0 rgba(230,0,35,0)}
+  }
+  h1{
+    font-family:var(--display);font-weight:800;font-size:70px;
+    line-height:1.05;letter-spacing:-1.2px;color:var(--ink);
+  }
+  h1 .accent{color:var(--primary)}
+  .sub{font-size:18px;color:var(--mute);margin:24px 0 32px;max-width:480px;line-height:1.55}
+  .hero-form{display:flex;gap:8px;max-width:460px}
+  .hero-form input{
+    flex:1;font-family:var(--text);font-size:16px;
+    background:var(--canvas);border:1px solid var(--ash);
+    border-radius:var(--r-md);padding:14px 16px;color:var(--ink);outline:none;
+  }
+  .hero-form input::placeholder{color:var(--ash)}
+  .hero-form input:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+  .hero-install{
+    background:var(--canvas);border:1px solid var(--hairline);
+    border-radius:var(--r-lg);padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.08);
+  }
+  .hero-install h2{font-size:32px;max-width:none;margin-bottom:12px}
+  .hero-install p{font-size:15px;color:var(--mute);line-height:1.6;margin-bottom:20px}
+  .install-card{
+    background:var(--surface-soft);border:1px solid var(--hairline);
+    border-radius:var(--r-md);padding:16px;margin-top:18px;
+  }
+  .install-card strong{display:block;color:var(--ink);font-size:14px;margin-bottom:8px}
+  .install-card ol{padding-left:20px;color:var(--mute);font-size:14px;line-height:1.7}
+  .bookmarklet-config{display:grid;gap:8px;margin:18px 0 12px}
+  .bookmarklet-config label{font-size:13px;font-weight:800;color:var(--ink)}
+  .bookmarklet-config input{
+    width:100%;font-family:var(--text);font-size:14px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:12px 14px;color:var(--ink);outline:none;
+  }
+  .bookmarklet-config input:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .bookmarklet-warning{
+    display:none;background:#fff5d6;color:#5b4200;border:1px solid #e7c865;
+    border-radius:var(--r-md);padding:12px;font-size:13px;line-height:1.55;margin-top:12px;
+  }
+  .bookmarklet-warning.show{display:block}
+
+  .masonry{columns:3;column-gap:8px}
+  .pin{
+    break-inside:avoid;margin-bottom:8px;border-radius:var(--r-md);
+    overflow:hidden;position:relative;background:var(--surface-card);
+    animation:rise .7s cubic-bezier(.2,.7,.3,1) backwards;
+  }
+  .pin:nth-child(2){animation-delay:.08s}
+  .pin:nth-child(3){animation-delay:.16s}
+  .pin:nth-child(4){animation-delay:.24s}
+  .pin:nth-child(5){animation-delay:.32s}
+  .pin:nth-child(6){animation-delay:.4s}
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  .pin .ph{
+    width:100%;display:flex;align-items:flex-end;padding:16px;color:#fff;
+    font-family:var(--display);font-weight:700;font-size:17px;
+    line-height:1.25;letter-spacing:-.4px;
+  }
+  .pin .src{
+    position:absolute;top:12px;left:12px;
+    background:var(--canvas);color:var(--ink);
+    font-weight:700;font-size:12px;padding:6px 12px;border-radius:var(--r-full);
+  }
+  .ph.a{height:240px;background:linear-gradient(150deg,#7e238b,#6845ab)}
+  .ph.b{height:300px;background:linear-gradient(150deg,#e60023,#cc001f)}
+  .ph.c{height:200px;background:linear-gradient(150deg,#103c25,#1d6b41)}
+  .ph.d{height:280px;background:linear-gradient(150deg,#262622,#4a4a42)}
+  .ph.e{height:220px;background:linear-gradient(150deg,#617bff,#435ee5)}
+  .ph.f{height:260px;background:linear-gradient(150deg,#33332e,#62625b)}
+
+  .hero-product{
+    background:var(--canvas);border:1px solid var(--hairline);
+    border-radius:var(--r-lg);padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.08);
+  }
+  .hero-product-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .hero-product-title{font-family:var(--display);font-size:18px;font-weight:800;color:var(--ink)}
+  .hero-product-badge{background:var(--success-pale);color:var(--success-deep);border-radius:var(--r-full);padding:7px 11px;font-size:12px;font-weight:800}
+  .hero-select{
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:14px 16px;
+    background:var(--surface-soft);margin-bottom:14px;
+  }
+  .hero-select span{display:block;font-size:12px;color:var(--ash);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .hero-select strong{display:block;color:var(--ink);font-size:16px}
+  .hero-import{
+    border:none;border-radius:var(--r-md);background:var(--primary);color:#fff;
+    font-weight:800;font-size:15px;padding:14px 16px;width:100%;margin-bottom:16px;
+  }
+  .hero-video-list{display:grid;gap:10px}
+  .hero-video{
+    display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;
+    border:1px solid var(--hairline-soft);border-radius:var(--r-md);padding:10px;background:var(--surface-soft);
+  }
+  .hero-thumb{height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px}
+  .hero-thumb.red{background:linear-gradient(150deg,#e60023,#7e238b)}
+  .hero-thumb.dark{background:linear-gradient(150deg,#262622,#617bff)}
+  .hero-thumb.green{background:linear-gradient(150deg,#103c25,#4CAF7D)}
+  .hero-video strong{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+  .hero-video span{display:block;color:var(--mute);font-size:12px}
+  .hero-product-note{font-size:13px;color:var(--mute);line-height:1.5;margin-top:14px}
+
+  section{padding:var(--s-section) 0}
+  .eyebrow{
+    font-weight:700;font-size:14px;color:var(--primary);
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;
+  }
+  h2{
+    font-family:var(--display);font-weight:800;font-size:44px;
+    line-height:1.15;letter-spacing:-.8px;color:var(--ink);max-width:760px;
+  }
+  h2 .nowrap{white-space:nowrap}
+  .section-sub{font-size:18px;color:var(--mute);margin-top:18px;max-width:560px;line-height:1.55}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+  .fcard{background:var(--canvas);border-radius:var(--r-md);padding:32px}
+  .fcard:nth-child(2){background:var(--surface-card)}
+  .ficon{
+    width:48px;height:48px;border-radius:var(--r-md);background:var(--surface-card);
+    display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:22px;
+  }
+  .fcard:nth-child(2) .ficon{background:var(--canvas)}
+  .fcard h3{
+    font-family:var(--display);font-weight:700;font-size:20px;
+    color:var(--ink);margin-bottom:10px;letter-spacing:-.3px;
+  }
+  .fcard p{font-size:15px;color:var(--mute);line-height:1.6}
+
+  .notion-mock{
+    display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:48px;
+    background:var(--surface-dark);border-radius:var(--r-lg);padding:16px;
+  }
+  .extension-card,.notion-card{
+    background:var(--canvas);border-radius:var(--r-md);padding:20px;color:var(--ink);
+  }
+  .mock-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .mock-title{font-weight:800;font-size:14px;color:var(--ink)}
+  .mock-badge{
+    background:#ffe5ea;color:var(--primary);border-radius:var(--r-full);
+    padding:6px 10px;font-size:12px;font-weight:800;
+  }
+  .save-target{
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:14px;
+    background:var(--surface-soft);margin-bottom:14px;
+  }
+  .save-target strong{display:block;font-family:var(--display);font-size:18px;color:var(--ink);line-height:1.25;margin-bottom:8px}
+  .save-target p{font-size:13px;color:var(--mute);line-height:1.5}
+  .form-grid{display:grid;gap:10px}
+  .mock-field{border:1px solid var(--hairline);border-radius:var(--r-md);padding:12px;background:var(--canvas)}
+  .mock-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:800;color:var(--ash);margin-bottom:7px}
+  .chipline{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;border-radius:var(--r-full);background:var(--surface-card);padding:6px 10px;font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .chip.red{background:#ffe5ea;color:var(--primary)}
+  .chip.green{background:var(--success-pale);color:var(--success-deep)}
+  .mock-btn{margin-top:14px;width:100%;border:none;border-radius:var(--r-md);background:var(--primary);color:#fff;font-weight:800;padding:13px 16px}
+  .notion-table{display:grid;gap:8px}
+  .notion-row{
+    display:grid;grid-template-columns:1.2fr .9fr .9fr .8fr;gap:8px;align-items:center;
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:10px 12px;font-size:13px;
+  }
+  .notion-row.header{background:var(--surface-card);font-weight:800;color:var(--mute)}
+  .mock-note{font-size:13px;color:var(--stone);line-height:1.55;margin-top:14px}
+  .mock-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .mock-action{background:var(--surface-card);border-radius:var(--r-md);padding:12px;font-size:13px;font-weight:700;color:var(--ink-soft)}
+
+  .youtube-connect{
+    display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:48px;
+  }
+  .account-panel,.library-panel{
+    background:var(--canvas);border-radius:var(--r-md);padding:24px;
+  }
+  .account-panel{background:var(--surface-card)}
+  .mini-form{display:grid;gap:10px;margin-top:20px}
+  .mini-form input,.mini-form select{
+    width:100%;font-family:var(--text);font-size:15px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:12px 14px;color:var(--ink);outline:none;
+  }
+  .mini-form input:focus,.mini-form select:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .connect-stack{display:grid;gap:10px;margin-top:18px}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-full);
+    background:var(--canvas);color:var(--mute);font-size:13px;font-weight:800;padding:9px 12px;
+  }
+  .status-pill.ready{background:var(--success-pale);color:var(--success-deep)}
+  .status-dot{width:8px;height:8px;border-radius:var(--r-full);background:var(--ash)}
+  .status-pill.ready .status-dot{background:var(--success-deep)}
+  .policy-note{
+    margin-top:16px;border:1px solid var(--hairline);border-radius:var(--r-md);
+    padding:12px;color:var(--mute);font-size:13px;line-height:1.55;background:var(--canvas);
+  }
+  .library-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .video-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .video-card{border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;background:var(--surface-soft)}
+  .thumb{
+    height:118px;display:flex;align-items:flex-end;padding:12px;color:#fff;
+    font-family:var(--display);font-weight:800;font-size:15px;line-height:1.2;
+  }
+  .thumb.one{background:linear-gradient(150deg,#e60023,#7e238b)}
+  .thumb.two{background:linear-gradient(150deg,#262622,#617bff)}
+  .thumb.three{background:linear-gradient(150deg,#103c25,#4CAF7D)}
+  .video-meta{padding:12px}
+  .video-meta h3{font-family:var(--display);font-size:15px;color:var(--ink);line-height:1.25;margin-bottom:8px}
+  .video-meta p{font-size:13px;color:var(--mute);line-height:1.45}
+  .import-summary{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:16px;border-radius:var(--r-md);background:var(--surface-card);padding:14px;
+    color:var(--ink);font-weight:700;
+  }
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+  .step{padding:32px;background:var(--surface-card);border-radius:var(--r-md)}
+  .step .n{
+    font-family:var(--display);font-weight:800;font-size:44px;
+    color:var(--primary);letter-spacing:-.8px;line-height:1;margin-bottom:16px;
+  }
+  .step h3{font-family:var(--display);font-weight:700;font-size:18px;color:var(--ink);margin-bottom:8px}
+  .step p{font-size:14px;color:var(--mute);line-height:1.6}
+
+  .cta-strip{background:var(--surface-dark);color:var(--on-dark);padding:64px 0;margin:64px 0 0}
+  .cta-strip .wrap{display:flex;align-items:center;justify-content:space-between;gap:40px}
+  .cta-strip h2{color:var(--on-dark);font-size:40px;max-width:560px}
+  .cta-strip p{color:var(--stone);margin-top:14px;font-size:16px}
+  .counter{font-family:var(--display);font-weight:800;font-size:64px;color:#fff;letter-spacing:-1.2px;line-height:1}
+  .counter span{color:var(--primary)}
+  .counter-label{font-size:14px;color:var(--stone);margin-top:8px;font-weight:600}
+
+  footer{background:var(--canvas);border-top:1px solid var(--hairline);padding:32px 0}
+  .fsimple{display:flex;justify-content:space-between;align-items:center;gap:24px}
+  .fsimple p{font-size:14px;color:var(--mute);margin-top:4px}
+  .fbrand{font-family:var(--display);font-weight:800;font-size:22px;color:var(--primary);letter-spacing:-1px}
+  .fcopy{font-size:13px;color:var(--mute)}
+
+  .scrim{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);
+    display:none;align-items:center;justify-content:center;
+    z-index:100;padding:24px;opacity:0;transition:opacity .2s ease;
+  }
+  .scrim.open{display:flex;opacity:1}
+  .modal{
+    background:var(--canvas);border-radius:var(--r-lg);padding:32px;
+    width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,.18);
+    transform:translateY(12px) scale(.98);transition:transform .25s cubic-bezier(.2,.7,.3,1);
+  }
+  .scrim.open .modal{transform:none}
+  .modal h3{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);letter-spacing:-.4px;padding-right:44px}
+  .modal .success h3{padding-right:0}
+  .modal .msub{font-size:15px;color:var(--mute);margin:10px 0 24px;line-height:1.5}
+  .modal label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
+  .modal .field{margin-bottom:18px}
+  .modal input, .modal select{
+    width:100%;font-family:var(--text);font-size:16px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:13px 15px;color:var(--ink);outline:none;
+  }
+  .modal input:focus, .modal select:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .modal .btn{width:100%;padding:15px;font-size:16px}
+  .modal .logmsg{font-size:13px;color:var(--mute);text-align:center;margin-top:18px}
+  .modal .logmsg a{color:var(--ink-soft);font-weight:700}
+  .mclose{
+    position:absolute;top:-2px;right:0;width:36px;height:36px;
+    border-radius:var(--r-full);background:var(--surface-card);
+    border:none;cursor:pointer;font-size:16px;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-head{position:relative}
+  .errmsg{color:var(--error);font-size:13px;margin-top:-8px;margin-bottom:14px;display:none}
+  .errmsg.show{display:block}
+  .success{text-align:center;padding:12px 0}
+  .success .check{
+    width:64px;height:64px;border-radius:var(--r-full);
+    background:var(--success-pale);color:var(--success-deep);
+    display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 20px;
+  }
+  .success h3{margin-bottom:10px}
+  .success p{font-size:15px;color:var(--mute);line-height:1.55}
+  .bookmarklet-panel{
+    background:var(--canvas);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-lg);
+    padding:28px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:24px;
+    align-items:center;
+    box-shadow:0 12px 36px rgba(0,0,0,.06);
+  }
+  .bookmarklet-panel h2{font-size:32px}
+  .bookmarklet-panel p{font-size:15px;color:var(--mute);line-height:1.6;margin-top:10px;max-width:660px}
+  .bookmarklet-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:190px;
+    border-radius:var(--r-md);
+    background:var(--primary);
+    color:#fff;
+    font-weight:800;
+    padding:16px 18px;
+    box-shadow:0 10px 24px rgba(230,0,35,.22);
+  }
+  .bookmarklet-help{font-size:13px;color:var(--ash);margin-top:10px}
+  .save-preview{
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    background:var(--surface-soft);
+    padding:14px;
+    margin-bottom:18px;
+  }
+  .save-preview strong{display:block;color:var(--ink);font-size:16px;line-height:1.35;margin-bottom:8px}
+  .save-preview span{display:block;color:var(--mute);font-size:13px;line-height:1.45;word-break:break-all}
+  .save-preview p{font-size:13px;color:var(--body);line-height:1.5;margin-top:10px;max-height:90px;overflow:auto}
+  .library-panel-live{
+    background:var(--canvas);border:1px solid var(--hairline);
+    border-radius:var(--r-lg);padding:28px;box-shadow:0 12px 36px rgba(0,0,0,.06);
+  }
+  .library-toolbar{display:flex;gap:10px;margin-top:22px;max-width:560px}
+  .library-toolbar input{
+    flex:1;font-family:var(--text);font-size:15px;background:var(--canvas);
+    border:1px solid var(--ash);border-radius:var(--r-md);padding:13px 15px;color:var(--ink);outline:none;
+  }
+  .library-toolbar input:focus{border:2px solid var(--ink);box-shadow:0 0 0 4px var(--focus-outer)}
+  .saved-list{display:grid;gap:12px;margin-top:24px}
+  .saved-empty{
+    border:1px dashed var(--stone);border-radius:var(--r-md);padding:22px;
+    color:var(--mute);font-size:14px;background:var(--surface-soft);
+  }
+  .saved-item{
+    display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;
+    border:1px solid var(--hairline-soft);border-radius:var(--r-md);
+    background:var(--surface-soft);padding:16px;
+  }
+  .saved-item h3{font-family:var(--display);font-size:17px;color:var(--ink);line-height:1.3;margin-bottom:6px}
+  .saved-item a{color:var(--primary);font-size:13px;word-break:break-all}
+  .saved-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:12px}
+  .saved-quote{font-size:13px;color:var(--body);line-height:1.5;margin-top:10px}
+  .saved-summary{
+    background:var(--canvas);border:1px solid var(--hairline-soft);
+    border-radius:var(--r-md);padding:12px;margin-top:12px;
+  }
+  .saved-summary strong{display:block;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .saved-summary p{font-size:13px;color:var(--body);line-height:1.55}
+  .keyword-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .keyword-chip{
+    display:inline-flex;align-items:center;border-radius:var(--r-full);
+    background:#ffe5ea;color:var(--primary);font-size:12px;font-weight:800;padding:6px 9px;
+  }
+  .saved-open{
+    border:1px solid var(--hairline);background:var(--canvas);border-radius:var(--r-md);
+    color:var(--ink);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;cursor:pointer;
+  }
+  .saved-actions{display:flex;gap:8px;align-items:center}
+  .saved-delete{
+    border:1px solid #f0b8bf;background:#fff5f6;border-radius:var(--r-md);
+    color:var(--primary);font-weight:800;font-size:13px;padding:10px 12px;white-space:nowrap;cursor:pointer;
+  }
+  .knowledge-panel{
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    background:var(--canvas);padding:28px;margin-top:20px;
+  }
+  .knowledge-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
+  .knowledge-head h2{font-size:32px}
+  .graph-wrap{
+    border:1px solid var(--hairline-soft);border-radius:var(--r-md);
+    background:var(--surface-soft);min-height:360px;overflow:auto;
+  }
+  .graph-wrap svg{display:block;width:100%;height:360px}
+  .graph-edge{stroke:var(--stone);stroke-width:2;opacity:.75}
+  .graph-node circle{fill:var(--canvas);stroke:var(--primary);stroke-width:3}
+  .graph-node rect{fill:var(--canvas);stroke:var(--hairline);stroke-width:2}
+  .graph-node.graph-concept circle{fill:#fff7d6;stroke:#d39b00}
+  .graph-node.graph-concept rect{fill:#fff7d6;stroke:#d39b00}
+  .graph-node.graph-content circle{fill:#fff;stroke:var(--primary)}
+  .graph-node text{font-size:12px;font-weight:800;fill:var(--ink);pointer-events:none}
+  .graph-label{font-size:11px;fill:var(--mute)}
+  .relation-list{display:grid;gap:10px;margin-top:16px}
+  .relation-item{
+    background:var(--surface-soft);border:1px solid var(--hairline-soft);
+    border-radius:var(--r-md);padding:12px;font-size:13px;color:var(--body);line-height:1.5;
+  }
+  .relation-item strong{color:var(--ink)}
+  #notion-save,#youtube-sync,.cta-strip{display:none}
+  #features,#how,footer,body>nav,body>header{display:none}
+
+  .app-shell{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    background:linear-gradient(135deg,#fff7f3 0%,#fbfbf9 48%,#f4f0ec 100%);
+  }
+  .app-sidebar{
+    position:sticky;top:0;height:100vh;
+    background:rgba(255,255,255,.86);
+    border-right:1px solid var(--hairline-soft);
+    padding:28px 20px;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .side-brand{font-family:var(--display);font-size:22px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:9px}
+  .side-mark{width:28px;height:28px;border-radius:var(--r-full);background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:900}
+  .side-nav{display:grid;gap:8px;margin-top:32px}
+  .side-link{
+    width:100%;border:none;background:transparent;color:var(--body);
+    display:flex;align-items:center;gap:10px;border-radius:var(--r-md);
+    padding:12px 14px;font-weight:800;cursor:pointer;text-align:left;
+  }
+  .side-link.active{background:#fff0f2;color:var(--primary)}
+  .side-link span{font-size:16px;width:20px;text-align:center}
+  .side-profile{background:var(--surface-soft);border:1px solid var(--hairline-soft);border-radius:var(--r-md);padding:12px;font-size:12px;color:var(--mute)}
+  .side-profile strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+  .app-main{padding:32px;min-width:0}
+  .app-page{display:none;max-width:1180px;margin:0 auto}
+  .app-page.active{display:block}
+  .app-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+  .app-title h1{font-size:42px;letter-spacing:0;line-height:1.2}
+  .app-title p{font-size:15px;color:var(--mute);margin-top:10px;line-height:1.6}
+  .icon-button{
+    width:42px;height:42px;border-radius:var(--r-full);border:1px solid var(--hairline);
+    background:var(--canvas);display:grid;place-items:center;font-weight:900;color:var(--ink);
+  }
+  .dashboard-card{
+    background:rgba(255,255,255,.9);border:1px solid var(--hairline-soft);
+    border-radius:24px;padding:32px;box-shadow:0 18px 50px rgba(0,0,0,.07);
+  }
+  .url-capture{
+    display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+    background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-md);
+    padding:12px;max-width:720px;margin-top:24px;box-shadow:0 12px 34px rgba(0,0,0,.06);
+  }
+  .url-capture input{border:none;outline:none;font-size:15px;padding:10px;background:transparent;color:var(--ink)}
+  .quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:32px}
+  .quick-card{
+    background:var(--canvas);border:1px solid var(--hairline-soft);border-radius:var(--r-md);
+    padding:14px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .quick-thumb{height:72px;border-radius:12px;background:linear-gradient(135deg,#e60023,#7e238b);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px}
+  .quick-card strong{font-size:13px;color:var(--ink);line-height:1.4}
+  .quick-card span{font-size:12px;color:var(--mute)}
+  .page-panel{background:rgba(255,255,255,.92);border:1px solid var(--hairline-soft);border-radius:24px;padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.06)}
+  .page-panel .library-panel-live,.page-panel .knowledge-panel{box-shadow:none;border:none;background:transparent;padding:0;margin:0}
+
+  @media (max-width:900px){
+    .app-shell{grid-template-columns:1fr}
+    .app-sidebar{position:static;height:auto;padding:16px;gap:16px}
+    .side-nav{grid-template-columns:repeat(4,1fr);margin-top:16px}
+    .side-link{justify-content:center;font-size:0}
+    .side-link span{font-size:18px}
+    .app-main{padding:18px}
+    .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .url-capture{grid-template-columns:1fr}
+    .app-title h1{font-size:32px}
+  }
+
+  @media (max-width:1024px){ h1{font-size:56px} .masonry{columns:2} }
+  @media (max-width:768px){
+    .hero{grid-template-columns:1fr;gap:40px}
+    h1{font-size:44px} h2,.cta-strip h2{font-size:32px}
+    h2 .nowrap{white-space:normal}
+    .features,.steps,.notion-mock,.youtube-connect{grid-template-columns:1fr}
+    .notion-row{grid-template-columns:1fr}
+    .mock-actions{grid-template-columns:1fr}
+    .library-head,.import-summary{flex-direction:column;align-items:flex-start}
+    .library-toolbar,.saved-item{grid-template-columns:1fr}
+    .library-toolbar{display:grid}
+    .knowledge-head{flex-direction:column}
+    .video-grid{grid-template-columns:1fr}
+    .nav-links a:not(.signup){display:none}
+    .cta-strip .wrap{flex-direction:column;align-items:flex-start}
+    .fsimple{flex-direction:column;align-items:flex-start;gap:16px}
+    .bookmarklet-panel{grid-template-columns:1fr}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 16px} h1{font-size:36px}
+    header{padding:48px 0} section{padding:48px 0}
+    .hero-form{flex-direction:column}
+    .masonry{columns:2;column-gap:6px}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div>
+      <div class="side-brand"><span class="side-mark">L</span>LinkVault</div>
+      <div class="side-nav" aria-label="LinkVault pages">
+        <button class="side-link active" type="button" data-page="home" onclick="showAppPage('home')"><span>⌂</span>홈</button>
+        <button class="side-link" type="button" data-page="sources" onclick="showAppPage('sources')"><span>▣</span>소스</button>
+        <button class="side-link" type="button" data-page="wiki" onclick="showAppPage('wiki')"><span>◇</span>위키</button>
+        <button class="side-link" type="button" data-page="settings" onclick="showAppPage('settings')"><span>⚙</span>설정</button>
+      </div>
+    </div>
+    <div class="side-profile">
+      <strong>My Space</strong>
+      저장한 이메일 기준으로 개인 라이브러리를 불러옵니다.
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <section class="app-page active" id="page-home">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>오늘도 지식을 수집하고 정리해봐요</h1>
+          <p>YouTube 링크를 저장하면 자막을 가져와 위키형 요약과 개념 그래프로 바꿉니다.</p>
+        </div>
+        <button class="icon-button" type="button" onclick="openSampleSave()" title="저장 테스트">＋</button>
+      </div>
+      <div class="dashboard-card">
+        <div class="pill"><span class="live"></span>오늘 MVP: 북마클릿 저장</div>
+        <h2>보고 있는 링크를<br><span class="accent">한 번에 저장</span>하세요.</h2>
+        <p class="section-sub">북마클릿으로 저장하거나, 아래 입력창에서 바로 저장 모달을 열 수 있습니다.</p>
+        <form class="url-capture" onsubmit="return quickUrlSubmit(event)">
+          <input id="quickUrlInput" type="url" placeholder="YouTube URL을 붙여넣으세요">
+          <button class="btn btn-primary" id="quickUrlButton" type="submit">추가하기</button>
+        </form>
+        <div class="quick-grid">
+          <div class="quick-card"><div class="quick-thumb">YouTube</div><strong>자막 추출</strong><span>저장 즉시 분석 시작</span></div>
+          <div class="quick-card"><div class="quick-thumb">Wiki</div><strong>마크다운 요약</strong><span>개인 지식 노트 생성</span></div>
+          <div class="quick-card"><div class="quick-thumb">Graph</div><strong>개념 연결</strong><span>[[위키링크]] 기반</span></div>
+          <div class="quick-card"><div class="quick-thumb">Source</div><strong>출처 보관</strong><span>원문 URL과 함께 저장</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-page" id="page-sources">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>소스</h1>
+          <p>북마클릿으로 저장한 링크와 분석 상태를 최신순으로 확인합니다.</p>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="openSampleSave()">URL 추가</button>
+      </div>
+      <div class="page-panel">
+    <div class="library-panel-live" id="library">
+      <div class="eyebrow">Library</div>
+      <h2>저장한 링크를 바로 확인하세요.</h2>
+      <p class="section-sub">북마클릿으로 저장할 때 입력한 이메일을 넣으면 Supabase에 저장된 링크를 최신순으로 불러옵니다.</p>
+      <form class="library-toolbar" onsubmit="return loadSavedLinks(event)">
+        <input type="email" id="libraryEmail" placeholder="저장할 때 입력한 이메일" required>
+        <button type="submit" class="btn btn-primary">불러오기</button>
+      </form>
+      <div class="saved-list" id="savedList">
+        <div class="saved-empty">아직 불러온 저장 목록이 없습니다. 이메일을 입력하고 불러오기를 눌러주세요.</div>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="app-page" id="page-wiki">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>위키</h1>
+          <p>저장한 콘텐츠가 어떤 개념으로 연결되는지 봅니다. 왼쪽은 콘텐츠, 오른쪽은 개념입니다.</p>
+        </div>
+        <button class="btn btn-secondary" type="button" onclick="refreshKnowledgeGraph()">그래프 새로고침</button>
+      </div>
+      <div class="page-panel">
+    <div class="knowledge-panel" id="knowledgePanel">
+      <div class="knowledge-head">
+        <div>
+          <div class="eyebrow">Knowledge Graph</div>
+          <h2>콘텐츠와 개념의 연결을 봅니다.</h2>
+          <p class="section-sub">콘텐츠는 재생 아이콘으로, 개념은 키워드 pill로 표시합니다.</p>
+        </div>
+      </div>
+      <div class="graph-wrap" id="graphWrap">
+        <div class="saved-empty">소스 페이지에서 저장 목록을 불러오면 그래프가 표시됩니다.</div>
+      </div>
+      <div class="relation-list" id="relationList"></div>
+    </div>
+      </div>
+    </section>
+
+    <section class="app-page" id="page-settings">
+      <div class="app-topbar">
+        <div class="app-title">
+          <h1>설정</h1>
+          <p>북마클릿 설치와 앱 주소 설정을 관리합니다.</p>
+        </div>
+      </div>
+      <div class="page-panel">
+        <div class="hero-install" id="bookmarklet">
+          <div class="eyebrow">Install</div>
+          <h2>Save to LinkVault</h2>
+          <p>아래 빨간 버튼을 브라우저 북마크바로 드래그하세요. 설치 후 어떤 페이지에서든 버튼을 누르면 저장 모달이 열립니다.</p>
+          <div class="bookmarklet-config" id="appUrlConfig" style="display:none">
+            <label for="appUrlInput">LinkVault 앱 주소</label>
+            <input id="appUrlInput" type="url" placeholder="https://your-linkvault.vercel.app" oninput="buildBookmarklet()">
+          </div>
+          <a class="bookmarklet-button" id="bookmarkletLink" href="#">Save to LinkVault</a>
+          <div class="bookmarklet-warning" id="bookmarkletWarning">지금은 file:// 미리보기라 이 상태로 북마클릿을 설치하면 YouTube에서 동작하지 않을 수 있습니다. Vercel 배포 URL 같은 https 주소를 입력한 뒤 버튼을 북마크바로 드래그하세요.</div>
+          <div class="bookmarklet-help" id="bookmarkletHelp">Vercel 배포 페이지에서 이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.</div>
+          <div class="install-card">
+            <strong>저장되는 데이터</strong>
+            <ol>
+              <li>현재 페이지 URL</li>
+              <li>페이지 제목</li>
+              <li>드래그해 선택한 텍스트</li>
+              <li>소유자 이메일</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow">왜 LinkVault인가</div>
+    <h2>저장만 하는 도구는 많습니다.<br><span class="nowrap">다시 꺼내 쓰게 만드는 도구는 드뭅니다.</span></h2>
+    <p class="section-sub">LinkVault는 단순 북마크가 아니라, 모아둔 콘텐츠가 진짜 내 지식이 되도록 돕습니다.</p>
+    <div class="features">
+      <div class="fcard">
+        <div class="ficon">📥</div>
+        <h3>한 번의 공유로 저장</h3>
+        <p>어떤 앱이든 '공유하기'만 누르면 끝. PC에서는 브라우저 익스텐션 한 번 클릭이면 됩니다.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon">✨</div>
+        <h3>AI가 알아서 정리</h3>
+        <p>저장하는 순간 AI가 요약하고, 태그를 달고, 비슷한 콘텐츠끼리 묶어줍니다. 정리할 일이 없어집니다.</p>
+      </div>
+      <div class="fcard">
+        <div class="ficon">🔍</div>
+        <h3>의미로 찾는 검색</h3>
+        <p>"예전에 봤던 그 마케팅 글" — 정확한 단어가 기억나지 않아도 찾아냅니다. 매주 다이제스트로도 다시 만나요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="notion-save">
+  <div class="wrap">
+    <div class="eyebrow">기능 Mock-up</div>
+    <h2>Save to Notion처럼,<br><span class="nowrap">저장 순간에 DB까지 채웁니다.</span></h2>
+    <p class="section-sub">랜딩 페이지 안에서 실제 제품이 어떻게 동작할지 보여주는 기능 데모입니다. 기존 디자인 흐름은 유지하고, 확장 프로그램에서 Notion으로 저장되는 경험만 추가했습니다.</p>
+
+    <div class="notion-mock" aria-label="Save to Notion style feature mock-up">
+      <div class="extension-card">
+        <div class="mock-head">
+          <div class="mock-title">LinkVault Extension</div>
+          <div class="mock-badge">Save page</div>
+        </div>
+        <div class="save-target">
+          <strong>How AI teams collect useful research</strong>
+          <p>웹 아티클, 이메일, 트윗, YouTube 영상, LinkedIn 포스트, 레시피를 나중에 읽을 수 있도록 저장합니다.</p>
+        </div>
+        <div class="form-grid">
+          <div class="mock-field">
+            <div class="mock-label">Database</div>
+            <div>Research Inbox</div>
+          </div>
+          <div class="mock-field">
+            <div class="mock-label">Properties</div>
+            <div class="chipline"><span class="chip red">AI</span><span class="chip">Article</span><span class="chip green">Read later</span></div>
+          </div>
+          <div class="mock-field">
+            <div class="mock-label">Auto mapped</div>
+            <div>Author, published date, source URL, thumbnail</div>
+          </div>
+        </div>
+        <button class="mock-btn" type="button">Save to Notion</button>
+      </div>
+
+      <div class="notion-card">
+        <div class="mock-head">
+          <div class="mock-title">Notion database preview</div>
+          <div class="mock-badge">Mapped</div>
+        </div>
+        <div class="notion-table">
+          <div class="notion-row header">
+            <div>Name</div><div>Tags</div><div>Status</div><div>Assets</div>
+          </div>
+          <div class="notion-row">
+            <div>AI teams collect useful research</div>
+            <div><span class="chip red">AI</span></div>
+            <div><span class="chip green">Read later</span></div>
+            <div>2 highlights</div>
+          </div>
+          <div class="notion-row">
+            <div>LinkedIn market signal</div>
+            <div><span class="chip">LinkedIn</span></div>
+            <div><span class="chip">Work</span></div>
+            <div>1 image</div>
+          </div>
+        </div>
+        <div class="mock-actions">
+          <div class="mock-action">📸 Screenshot upload</div>
+          <div class="mock-action">✍️ Web highlights</div>
+          <div class="mock-action">👑 Custom forms</div>
+        </div>
+        <p class="mock-note">이 섹션은 실제 저장 기능을 설명하는 mock-up입니다. 확장 프로그램에서 태그, 관계형 속성, 체크박스 같은 Notion DB 속성을 바로 채우고, 웹페이지의 작성자/게시일 같은 데이터를 자동 매핑하는 흐름을 보여줍니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="youtube-sync">
+  <div class="wrap">
+    <div class="eyebrow">YouTube 연동</div>
+    <h2>로그인하고, YouTube playlist를<br><span class="nowrap">LinkVault로 가져옵니다.</span></h2>
+    <p class="section-sub">공식 API로 접근 가능한 사용자의 일반 재생목록을 가져오는 흐름입니다. YouTube의 “나중에 보기” 목록은 API 제한 때문에 직접 가져오지 않고, 사용자가 만든 playlist를 LinkVault Inbox처럼 쓰도록 안내합니다.</p>
+
+    <div class="youtube-connect" aria-label="YouTube playlist import flow">
+      <div class="account-panel">
+        <div class="mock-head">
+          <div class="mock-title">Account setup</div>
+          <div class="mock-badge">Demo flow</div>
+        </div>
+        <div class="status-pill" id="authStatus"><span class="status-dot"></span>Not signed in</div>
+        <div class="mini-form">
+          <input type="email" id="demoAccountEmail" placeholder="you@example.com">
+          <button class="btn btn-primary" type="button" onclick="demoSignIn()">Sign up / Log in</button>
+        </div>
+        <div class="connect-stack">
+          <div class="status-pill" id="youtubeStatus"><span class="status-dot"></span>YouTube not connected</div>
+          <button class="btn btn-secondary" type="button" onclick="demoConnectYouTube()">Connect YouTube</button>
+          <select id="playlistSelect" aria-label="YouTube playlist 선택">
+            <option value="research">LinkVault Inbox - Research videos</option>
+            <option value="learning">Product learning queue</option>
+            <option value="recipes">Weekend cooking ideas</option>
+          </select>
+          <button class="btn btn-primary" type="button" onclick="demoImportPlaylist()">Import playlist</button>
+        </div>
+        <div class="policy-note">Watch later는 YouTube Data API에서 목록 조회가 제한됩니다. 대신 직접 만든 playlist를 선택하면 OAuth 권한으로 영상 목록을 가져올 수 있습니다.</div>
+      </div>
+
+      <div class="library-panel">
+        <div class="library-head">
+          <div>
+            <div class="mock-title">Imported videos</div>
+            <p class="section-sub" style="margin-top:8px;font-size:15px">가져온 영상은 요약, 태그, 출처와 함께 LinkVault 콘텐츠 라이브러리에 저장됩니다.</p>
+          </div>
+          <div class="mock-badge" id="importBadge">Waiting</div>
+        </div>
+        <div class="video-grid" id="videoGrid">
+          <div class="video-card">
+            <div class="thumb one">AI research workflow</div>
+            <div class="video-meta">
+              <h3>Build a better research inbox</h3>
+              <p>YouTube · 18 min · Tags: Research, AI</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="thumb two">Notion database setup</div>
+            <div class="video-meta">
+              <h3>Design a Notion knowledge base</h3>
+              <p>YouTube · 12 min · Tags: Notion, PKM</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="thumb three">Saved for later</div>
+            <div class="video-meta">
+              <h3>Turn video queues into notes</h3>
+              <p>YouTube · 9 min · Tags: Learning</p>
+            </div>
+          </div>
+        </div>
+        <div class="import-summary">
+          <span id="importSummary">Sign in and connect YouTube to preview playlist import.</span>
+          <button class="btn btn-secondary" type="button" onclick="document.getElementById('youtube-sync').scrollIntoView({behavior:'smooth'})">View flow</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">작동 방식</div>
+    <h2>3단계면 충분합니다.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>저장하기</h3>
+        <p>유튜브 영상, 링크드인 글, 아티클 — 발견하는 즉시 LinkVault로 공유하거나 익스텐션 클릭.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>AI 자동 분류 및 요약</h3>
+        <p>AI가 핵심을 요약하고 태그를 달아 분류까지 끝냅니다. 폴더를 고를 필요도, 메모를 쓸 필요도 없어요.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>알림 받고 다시 보기</h3>
+        <p>주간 다이제스트 알림과 의미 기반 검색으로, 모아둔 콘텐츠가 진짜 내 지식이 되어 돌아옵니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-strip">
+  <div class="wrap">
+    <div>
+      <h2>출시 소식, 가장 먼저 받아보세요.</h2>
+      <p>사전 등록하신 분들께 출시 소식을 가장 먼저 전해드릴게요.</p>
+    </div>
+    <div style="text-align:center">
+      <div class="counter"><span id="count">17</span>명</div>
+      <div class="counter-label">분이 사전 등록하셨어요</div>
+      <button class="btn btn-primary btn-lg" style="margin-top:20px" onclick="openModal()">사전 등록하기</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="fsimple">
+      <div>
+        <div class="fbrand">LinkVault</div>
+        <p>흩어진 링크를 모아 진짜 내 지식으로.</p>
+      </div>
+      <span class="fcopy">© 2026 LinkVault</span>
+    </div>
+  </div>
+</footer>
+
+  </main>
+</div>
+
+<div class="scrim" id="saveScrim" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="mclose" onclick="closeSaveModal()" aria-label="닫기">x</button>
+      <div id="saveFormView">
+        <h3>LinkVault에 저장</h3>
+        <p class="msub">현재 페이지 정보를 확인하고 저장하세요. 다음 단계에서 AI 요약 카드와 지식 그래프를 붙일 수 있습니다.</p>
+        <div class="save-preview">
+          <strong id="savePreviewTitle">Untitled</strong>
+          <span id="savePreviewUrl"></span>
+          <p id="savePreviewText" style="display:none"></p>
+        </div>
+        <form onsubmit="return saveLinkSubmit(event)">
+          <div class="field">
+            <label for="saveEmail">내 이메일</label>
+            <input type="email" id="saveEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="saveTitle">제목</label>
+            <input type="text" id="saveTitle" placeholder="저장할 제목">
+          </div>
+          <p class="errmsg" id="saveErrMsg"></p>
+          <button type="submit" class="btn btn-primary" id="saveSubmitBtn">저장하기</button>
+        </form>
+      </div>
+      <div id="saveSuccessView" class="success" style="display:none">
+        <div class="check">✓</div>
+        <h3>저장 완료</h3>
+        <p>LinkVault DB에 저장했습니다. 이제 이 데이터를 기반으로 요약 카드와 지식 그래프를 붙일 수 있어요.</p>
+        <button class="btn btn-secondary" style="margin-top:24px;width:100%;padding:14px" onclick="closeSaveModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="mclose" onclick="closeModal()" aria-label="닫기">✕</button>
+      <div id="formView">
+        <h3>LinkVault 사전 등록</h3>
+        <p class="msub">출시 소식이 준비되면 가장 먼저 메일로 알려드릴게요.</p>
+        <form onsubmit="return modalSubmit(event)">
+          <div class="field">
+            <label for="mEmail">이메일</label>
+            <input type="email" id="mEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="mUse">주로 어떤 콘텐츠를 저장하시나요?</label>
+            <select id="mUse">
+              <option>유튜브 영상 / 강의</option>
+              <option>아티클 / 뉴스레터</option>
+              <option>링크드인 / 업무 인사이트</option>
+              <option>인스타그램 / 비주얼 레퍼런스</option>
+            </select>
+          </div>
+          <p class="errmsg" id="errMsg"></p>
+          <button type="submit" class="btn btn-primary" id="submitBtn">사전 등록 완료하기</button>
+        </form>
+        <p class="logmsg">입력하신 정보는 출시 안내 외 다른 용도로 사용되지 않아요.</p>
+      </div>
+      <div id="successView" class="success" style="display:none">
+        <div class="check">✓</div>
+        <h3>등록 완료!</h3>
+        <p>출시 소식이 준비되면 가장 먼저 메일로 알려드릴게요.</p>
+        <button class="btn btn-secondary" style="margin-top:24px;width:100%;padding:14px" onclick="closeModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ====== Supabase 설정 (배포 전 본인 값으로 교체하세요) ======
+  // Supabase 대시보드 → Project Settings → API 에서 확인 가능합니다.
+  const SUPABASE_URL = 'https://mvswbiupksxxysgngymb.supabase.co';      // 예: https://abcdxyz.supabase.co
+  const SUPABASE_ANON_KEY = 'sb_publishable_p1yjLM44Y5XwMWNjN748DQ_E5d5wVko';    // anon/publishable public 키 (브라우저 노출 OK)
+  // ===========================================================
+
+  let supabaseClient = null;
+  const configured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 20;
+  if (configured && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  const scrim = document.getElementById('scrim');
+  const saveScrim = document.getElementById('saveScrim');
+  let pendingSave = {
+    url: '',
+    title: '',
+    text: ''
+  };
+  let currentSavedItems = [];
+
+  function showAppPage(page){
+    document.querySelectorAll('.app-page').forEach(el => {
+      el.classList.toggle('active', el.id === `page-${page}`);
+    });
+    document.querySelectorAll('.side-link').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === page);
+    });
+    if(page === 'wiki'){
+      refreshKnowledgeGraph();
+    }
+  }
+
+  async function fetchYouTubeMetadata(url){
+    if(detectPlatform(url) !== 'youtube') return null;
+    try{
+      const response = await fetch('/api/youtube-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url })
+      });
+      if(!response.ok){
+        console.warn('YouTube metadata lookup failed', await response.text());
+        return null;
+      }
+      const data = await response.json();
+      if(data.error) return null;
+      return data;
+    }catch(err){
+      console.warn('YouTube metadata unavailable', err);
+      return null;
+    }
+  }
+
+  async function quickUrlSubmit(e){
+    e.preventDefault();
+    const input = document.getElementById('quickUrlInput');
+    const button = document.getElementById('quickUrlButton');
+    const url = input?.value.trim();
+    if(!url) return false;
+    if(button){
+      button.disabled = true;
+      button.textContent = '제목 확인 중...';
+    }
+    const metadata = await fetchYouTubeMetadata(url);
+    openSaveModal({
+      url,
+      title: metadata?.title || 'Untitled',
+      text: ''
+    });
+    if(input) input.value = '';
+    if(button){
+      button.disabled = false;
+      button.textContent = '추가하기';
+    }
+    return false;
+  }
+
+  function buildBookmarklet(){
+    const link = document.getElementById('bookmarkletLink');
+    if(!link) return;
+    const input = document.getElementById('appUrlInput');
+    const config = document.getElementById('appUrlConfig');
+    const help = document.getElementById('bookmarkletHelp');
+    const warning = document.getElementById('bookmarkletWarning');
+    const isFilePreview = location.protocol === 'file:';
+    const currentAppUrl = `${location.origin}${location.pathname}`;
+    const savedAppUrl = localStorage.getItem('linkvault_app_url') || '';
+    if(config){
+      config.style.display = isFilePreview ? 'grid' : 'none';
+    }
+    if(help){
+      help.textContent = isFilePreview
+        ? '배포 URL을 입력한 뒤 새로 생성된 버튼을 북마크바로 드래그하세요.'
+        : '이 버튼을 북마크바로 드래그하면 바로 사용할 수 있습니다. 북마크바가 안 보이면 Chrome에서 Ctrl+Shift+B를 누르세요.';
+    }
+    if(input && !input.value){
+      input.value = isFilePreview ? savedAppUrl : currentAppUrl;
+    }
+    const appUrl = input?.value.trim().replace(/\/$/, '') || currentAppUrl;
+    if(input?.value.trim()){
+      localStorage.setItem('linkvault_app_url', appUrl);
+    }
+    warning?.classList.toggle('show', isFilePreview);
+    const code = `javascript:(()=>{const app='${appUrl.replace(/'/g, "\\'")}';if(!/^https?:/.test(app)){alert('LinkVault 앱 주소를 https 배포 URL로 설정한 뒤 북마클릿을 다시 설치해 주세요.');return;}const u=encodeURIComponent(location.href);const t=encodeURIComponent(document.title||'');const selected=window.getSelection?String(window.getSelection()):'';const s=encodeURIComponent(selected.slice(0,4000));window.open(app+'?save=1&url='+u+'&title='+t+'&text='+s,'_blank','noopener,noreferrer,width=520,height=720');})();`;
+    link.href = code;
+  }
+
+  function detectPlatform(url){
+    try{
+      const host = new URL(url).hostname.replace(/^www\./,'');
+      if(host.includes('youtube.com') || host.includes('youtu.be')) return 'youtube';
+      if(host.includes('linkedin.com')) return 'linkedin';
+      if(host.includes('instagram.com')) return 'instagram';
+      return host;
+    }catch(_err){
+      return 'web';
+    }
+  }
+
+  function getYouTubeVideoId(url){
+    try{
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\./,'');
+      if(host === 'youtu.be'){
+        return parsed.pathname.split('/').filter(Boolean)[0] || '';
+      }
+      if(host.includes('youtube.com')){
+        if(parsed.searchParams.get('v')) return parsed.searchParams.get('v') || '';
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if(parts[0] === 'shorts' || parts[0] === 'embed') return parts[1] || '';
+      }
+      return '';
+    }catch(_err){
+      return '';
+    }
+  }
+
+  function canonicalizeSourceUrl(url){
+    try{
+      const platform = detectPlatform(url);
+      if(platform === 'youtube'){
+        const videoId = getYouTubeVideoId(url);
+        if(videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+      }
+      const parsed = new URL(url);
+      parsed.hash = '';
+      ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid'].forEach(param => parsed.searchParams.delete(param));
+      parsed.hostname = parsed.hostname.replace(/^www\./,'');
+      return parsed.toString().replace(/\/$/, '');
+    }catch(_err){
+      return String(url || '').trim();
+    }
+  }
+
+  async function findExistingSavedLink(email, url){
+    const canonical = canonicalizeSourceUrl(url);
+    const matches = row => {
+      const rowCanonical = row.canonical_source_url || canonicalizeSourceUrl(row.source_url);
+      return rowCanonical === canonical || row.source_url === url;
+    };
+    let result = await supabaseClient
+      .from('saved_links')
+      .select('id,title,source_url,canonical_source_url')
+      .eq('owner_email', email)
+      .limit(500);
+
+    if(result.error && /canonical_source_url|schema cache/i.test(result.error.message || '')){
+      result = await supabaseClient
+        .from('saved_links')
+        .select('id,title,source_url')
+        .eq('owner_email', email)
+        .limit(500);
+    }
+    if(result.error){
+      throw result.error;
+    }
+    return (result.data || []).find(matches) || null;
+  }
+
+  function openSaveModal(data){
+    pendingSave = {
+      url: data.url || '',
+      title: data.title || '',
+      text: data.text || ''
+    };
+    const savedEmail = localStorage.getItem('linkvault_save_email') || '';
+    document.getElementById('saveFormView').style.display='block';
+    document.getElementById('saveSuccessView').style.display='none';
+    document.getElementById('saveErrMsg').classList.remove('show');
+    const btn = document.getElementById('saveSubmitBtn');
+    btn.disabled = false;
+    btn.textContent = '저장하기';
+    document.getElementById('saveEmail').value = savedEmail;
+    document.getElementById('saveTitle').value = pendingSave.title;
+    document.getElementById('savePreviewTitle').textContent = pendingSave.title || 'Untitled';
+    document.getElementById('savePreviewUrl').textContent = pendingSave.url;
+    const textEl = document.getElementById('savePreviewText');
+    if(pendingSave.text){
+      textEl.textContent = pendingSave.text;
+      textEl.style.display = 'block';
+    }else{
+      textEl.textContent = '';
+      textEl.style.display = 'none';
+    }
+    saveScrim.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeSaveModal(){
+    saveScrim.classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  function showSaveError(msg){
+    const el=document.getElementById('saveErrMsg');
+    el.textContent=msg;
+    el.classList.add('show');
+  }
+
+  function showSaveSuccess(){
+    document.getElementById('saveFormView').style.display='none';
+    document.getElementById('saveSuccessView').style.display='block';
+  }
+
+  async function analyzeYouTubeLink(url, title){
+    try{
+      const response = await fetch('/api/analyze-youtube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url, title })
+      });
+      if(!response.ok){
+        console.warn('YouTube analysis failed', await response.text());
+        return null;
+      }
+      const data = await response.json();
+      if(data.error){
+        console.warn('YouTube analysis error', data.error);
+        return null;
+      }
+      return data;
+    }catch(err){
+      console.warn('YouTube analysis unavailable', err);
+      return null;
+    }
+  }
+
+  function setSavedListMessage(message){
+    const list = document.getElementById('savedList');
+    if(!list) return;
+    list.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'saved-empty';
+    empty.textContent = message;
+    list.appendChild(empty);
+  }
+
+  function formatSavedDate(value){
+    if(!value) return '';
+    try{
+      return new Intl.DateTimeFormat('ko-KR', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(value));
+    }catch(_err){
+      return value;
+    }
+  }
+
+  function normalizeWords(text){
+    const stopwords = new Set([
+      'the','and','for','with','from','this','that','you','your','are','was','were','have','has','had','how','what','why',
+      'can','will','into','about','using','use','make','made','build','new','best','part','full','video','post','page',
+      'tips','guide','tutorial','learn','learning','review','demo','example','examples','thing','things','good','great',
+      '으로','에서','하는','하고','있는','없는','것을','대한','그리고','하지만','영상','콘텐츠','링크','저장','페이지',
+      '관련','바로','현재','선택','텍스트','원문','보기','만들기','방법','하는법','입니다','합니다','합니다',
+      '정리','기반','단계','사용','위한','좋은','이런','저런','이번','오늘','내일','사례','예시',
+      'youtube','youtu','linkedin','instagram','https','http','www','com','watch'
+    ]);
+    return (text || '')
+      .toLowerCase()
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .split(/\s+/)
+      .map(word => word.trim())
+      .map(word => {
+        if(/[가-힣]/.test(word) && word.length > 2){
+          return word.replace(/(은|는|이|가|을|를|에|에서|으로|로|와|과|도|만|부터|까지|에게|처럼|보다|의)$/u, '');
+        }
+        return word;
+      })
+      .filter(word => word.length > 1 && !/^\d+$/.test(word) && !stopwords.has(word));
+  }
+
+  function addCandidate(scores, term, weight){
+    const cleaned = term.trim();
+    if(cleaned.length < 2 || cleaned.length > 48) return;
+    scores.set(cleaned, (scores.get(cleaned) || 0) + weight);
+  }
+
+  function scoreConcepts(text, baseWeight, scores){
+    const words = normalizeWords(text).slice(0, 120);
+    words.forEach(word => addCandidate(scores, word, baseWeight));
+    return words;
+  }
+
+  function normalizeConcept(value){
+    return String(value || '')
+      .replace(/^\[\[|\]\]$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function uniqueConcepts(values, limit = 12){
+    const seen = new Set();
+    const concepts = [];
+    const list = Array.isArray(values) ? values : (values ? [values] : []);
+    list.forEach(value => {
+      const concept = normalizeConcept(value);
+      const key = concept.toLowerCase();
+      if(!concept || seen.has(key)) return;
+      seen.add(key);
+      concepts.push(concept);
+    });
+    return concepts.slice(0, limit);
+  }
+
+  function wikilinksFromMarkdown(markdown){
+    return uniqueConcepts([...String(markdown || '').matchAll(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g)].map(match => match[1]), 16);
+  }
+
+  function markdownLead(markdown){
+    return String(markdown || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('---') && !line.startsWith('#') && !line.startsWith('type:') && !line.startsWith('title:') && !line.startsWith('keywords:') && !line.startsWith('topics:') && !line.startsWith('wikilinks:') && !line.startsWith('- [['))
+      .join(' ')
+      .replace(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g, '$1')
+      .slice(0, 260);
+  }
+
+  function extractKeywords(item){
+    const storedKeywords = uniqueConcepts(item.keywords, 10);
+    if(storedKeywords.length) return storedKeywords;
+    const wikiConcepts = uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 10);
+    if(wikiConcepts.length) return wikiConcepts;
+    const scores = new Map();
+    scoreConcepts(item.title || '', 3, scores);
+    scoreConcepts(item.selected_text || '', 1.4, scores);
+    const keywords = [...scores.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .filter(([term]) => !term.includes('http') && !term.includes(' '))
+      .slice(0, 8)
+      .map(([word]) => word);
+    return keywords.length ? keywords : [item.source_platform || detectPlatform(item.source_url) || 'web'];
+  }
+
+  function extractRelationTerms(item){
+    const wikiConcepts = uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 16);
+    if(wikiConcepts.length) return wikiConcepts;
+    const topicConcepts = uniqueConcepts(item.topics, 10);
+    if(topicConcepts.length) return topicConcepts;
+    const titleWords = scoreConcepts(item.title || '', 2, new Map());
+    const textWords = scoreConcepts(item.selected_text || '', 1, new Map());
+    return [...new Set([...titleWords, ...textWords])].filter(word => word.length > 2);
+  }
+
+  function makeSummary(item){
+    if(item.summary){
+      return item.summary;
+    }
+    if(item.transcript_status === 'missing_openai_key' && item.transcript_excerpt){
+      return item.transcript_excerpt.replace(/\s+/g, ' ').slice(0, 260);
+    }
+    const markdownSummary = markdownLead(item.markdown_summary);
+    if(markdownSummary){
+      return markdownSummary;
+    }
+    const title = item.title || 'Untitled';
+    const text = (item.selected_text || '').trim();
+    if(text){
+      const sentences = text
+        .replace(/\s+/g, ' ')
+        .split(/[.!?。！？]\s+|\n+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(' ');
+      return sentences.length > 160 ? `${sentences.slice(0, 157)}...` : sentences;
+    }
+    const platform = item.source_platform || detectPlatform(item.source_url);
+    if(platform === 'youtube'){
+      return '아직 AI 요약이 생성되지 않았습니다. 이 영상 카드의 다시 분석 버튼을 눌러 자막 기반 요약을 생성해 주세요.';
+    }
+    if(platform === 'linkedin'){
+      return '아직 요약이 생성되지 않은 LinkedIn 게시물입니다.';
+    }
+    return '아직 요약이 생성되지 않은 링크입니다.';
+  }
+
+  function summaryLabelFor(item){
+    if(item.transcript_status === 'ok' && item.summary) return 'AI 요약';
+    if(item.transcript_status === 'missing_openai_key') return '자막 미리보기';
+    if(item.transcript_status && item.transcript_status !== 'ok') return '요약 대기';
+    if((item.source_platform || detectPlatform(item.source_url)) === 'youtube' && !item.summary) return '요약 필요';
+    return '요약 없음';
+  }
+
+  function summaryStatusText(item){
+    const status = item.transcript_status || '';
+    if(status === 'ok') return 'OpenAI 분석 완료';
+    if(status === 'missing_openai_key') return 'OpenAI 키 없음: 요약 대신 자막 미리보기';
+    if(status === 'no_caption_track') return '자막 없음';
+    if(status === 'caption_fetch_failed') return '자막 불러오기 실패';
+    if(status === 'youtube_page_failed') return 'YouTube 페이지 접근 실패';
+    if(status === 'empty_caption') return '빈 자막';
+    if((item.source_platform || detectPlatform(item.source_url)) === 'youtube' && !item.summary) return '아직 분석되지 않은 기존 저장 영상입니다. 다시 분석을 눌러 주세요.';
+    return '';
+  }
+
+  function enrichItems(items){
+    return items.map(item => ({
+      ...item,
+      summary: makeSummary(item),
+      summaryLabel: summaryLabelFor(item),
+      summaryStatus: summaryStatusText(item),
+      keywords: extractKeywords(item),
+      relationTerms: extractRelationTerms(item),
+      wikiConcepts: uniqueConcepts([...uniqueConcepts(item.wikilinks, 16), ...wikilinksFromMarkdown(item.markdown_summary)], 16)
+    }));
+  }
+
+  function buildRelations(items){
+    const relations = [];
+    for(let i = 0; i < items.length; i++){
+      for(let j = i + 1; j < items.length; j++){
+        const a = items[i];
+        const b = items[j];
+        const exactShared = a.wikiConcepts.filter(concept => b.wikiConcepts.map(item => item.toLowerCase()).includes(concept.toLowerCase()));
+        const keywordShared = a.keywords.filter(keyword => b.keywords.map(item => item.toLowerCase()).includes(keyword.toLowerCase()));
+        const termShared = a.relationTerms.filter(term => b.relationTerms.map(item => item.toLowerCase()).includes(term.toLowerCase()));
+        const shared = uniqueConcepts([...exactShared, ...keywordShared, ...termShared], 5);
+        const strongShared = shared.filter(term => term.length > 3);
+        if(exactShared.length || keywordShared.length || strongShared.length >= 2){
+          relations.push({
+            source: i,
+            target: j,
+            shared,
+            score: exactShared.length * 5 + keywordShared.length * 3 + strongShared.length,
+            a,
+            b
+          });
+        }
+      }
+    }
+    return relations.sort((a, b) => b.score - a.score).slice(0, 12);
+  }
+
+  function shortTitle(title){
+    const text = title || 'Untitled';
+    return text.length > 22 ? `${text.slice(0, 20)}...` : text;
+  }
+
+  function graphConceptsForItem(item){
+    const wikiConcepts = uniqueConcepts(item.wikiConcepts, 8);
+    if(wikiConcepts.length) return wikiConcepts;
+    const keywordConcepts = uniqueConcepts(item.keywords, 6);
+    if(keywordConcepts.length) return keywordConcepts;
+    return uniqueConcepts(item.relationTerms, 5);
+  }
+
+  function renderKnowledgeGraph(){
+    const panel = document.getElementById('knowledgePanel');
+    const wrap = document.getElementById('graphWrap');
+    const relationList = document.getElementById('relationList');
+    if(!panel || !wrap || !relationList) return;
+    if(!currentSavedItems.length){
+      panel.style.display = 'block';
+      wrap.innerHTML = '<div class="saved-empty">소스 페이지에서 이메일로 저장 목록을 먼저 불러오면 그래프가 표시됩니다.</div>';
+      relationList.innerHTML = '';
+      return;
+    }
+    panel.style.display = 'block';
+    relationList.innerHTML = '';
+
+    const items = currentSavedItems.slice(0, 10);
+    const conceptMap = new Map();
+    items.forEach((item, itemIndex) => {
+      graphConceptsForItem(item).forEach(concept => {
+        const key = concept.toLowerCase();
+        if(!conceptMap.has(key)){
+          conceptMap.set(key, { label: concept, items: [] });
+        }
+        conceptMap.get(key).items.push(itemIndex);
+      });
+    });
+
+    const concepts = [...conceptMap.values()]
+      .sort((a, b) => b.items.length - a.items.length || a.label.localeCompare(b.label))
+      .slice(0, 12);
+    const conceptIndex = new Map(concepts.map((concept, index) => [concept.label.toLowerCase(), index]));
+    const edges = [];
+    items.forEach((item, itemIndex) => {
+      graphConceptsForItem(item).forEach(concept => {
+        const index = conceptIndex.get(concept.toLowerCase());
+        if(index !== undefined){
+          edges.push({ itemIndex, conceptIndex: index });
+        }
+      });
+    });
+
+    const width = 920;
+    const rowCount = Math.max(items.length, concepts.length, 5);
+    const height = Math.max(360, rowCount * 64 + 56);
+    const itemPositions = items.map((item, index) => ({
+      x: 170,
+      y: (height / (items.length + 1)) * (index + 1),
+      item
+    }));
+    const conceptPositions = concepts.map((concept, index) => ({
+      x: 720,
+      y: (height / (concepts.length + 1)) * (index + 1),
+      concept
+    }));
+
+    wrap.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.style.height = `${height}px`;
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Saved content and wiki concept graph');
+
+    edges.forEach(edge => {
+      const from = itemPositions[edge.itemIndex];
+      const to = conceptPositions[edge.conceptIndex];
+      if(!from || !to) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'graph-edge');
+      line.setAttribute('x1', from.x);
+      line.setAttribute('y1', from.y);
+      line.setAttribute('x2', to.x);
+      line.setAttribute('y2', to.y);
+      svg.appendChild(line);
+    });
+
+    itemPositions.forEach(({ x, y, item }, index) => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'graph-node graph-content');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 22);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = '▶';
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'graph-label');
+      label.setAttribute('x', x);
+      label.setAttribute('y', y + 42);
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = shortTitle(item.title);
+      group.append(circle, text, label);
+      svg.appendChild(group);
+    });
+
+    conceptPositions.forEach(({ x, y, concept }) => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'graph-node graph-concept');
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x - 78);
+      rect.setAttribute('y', y - 20);
+      rect.setAttribute('width', 156);
+      rect.setAttribute('height', 40);
+      rect.setAttribute('rx', 20);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = shortTitle(concept.label);
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('class', 'graph-label');
+      label.setAttribute('x', x);
+      label.setAttribute('y', y + 36);
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = `${concept.items.length}개 콘텐츠`;
+      group.append(rect, text, label);
+      svg.appendChild(group);
+    });
+    wrap.appendChild(svg);
+
+    if(!concepts.length){
+      const empty = document.createElement('div');
+      empty.className = 'saved-empty';
+      empty.textContent = '아직 그래프로 보여줄 개념이 없습니다. 새 YouTube 영상을 저장하면 자막 요약에서 위키 개념을 생성합니다.';
+      relationList.appendChild(empty);
+      return;
+    }
+
+    concepts.slice(0, 8).forEach(concept => {
+      const row = document.createElement('div');
+      row.className = 'relation-item';
+      const title = document.createElement('strong');
+      title.textContent = `[[${concept.label}]]`;
+      const linked = document.createElement('span');
+      linked.textContent = ` 연결 콘텐츠: ${concept.items.map(index => shortTitle(items[index]?.title)).filter(Boolean).join(', ')}`;
+      row.append(title, document.createElement('br'), linked);
+      relationList.appendChild(row);
+    });
+  }
+
+  async function refreshKnowledgeGraph(){
+    const email = document.getElementById('libraryEmail')?.value.trim() || localStorage.getItem('linkvault_save_email') || '';
+    if(email && configured && supabaseClient){
+      await loadSavedLinks();
+      return;
+    }
+    renderKnowledgeGraph();
+  }
+
+  function renderSavedLinks(items){
+    const list = document.getElementById('savedList');
+    if(!list) return;
+    list.innerHTML = '';
+    if(!items.length){
+      currentSavedItems = [];
+      renderKnowledgeGraph();
+      setSavedListMessage('아직 저장된 링크가 없습니다. YouTube나 LinkedIn에서 Save to LinkVault를 눌러 저장해보세요.');
+      return;
+    }
+    currentSavedItems = enrichItems(items);
+    currentSavedItems.forEach(item => {
+      const row = document.createElement('article');
+      row.className = 'saved-item';
+
+      const main = document.createElement('div');
+      const title = document.createElement('h3');
+      title.textContent = item.title || 'Untitled';
+      const url = document.createElement('a');
+      url.href = item.source_url;
+      url.target = '_blank';
+      url.rel = 'noopener noreferrer';
+      url.textContent = item.source_url;
+
+      const meta = document.createElement('div');
+      meta.className = 'saved-meta';
+      const platform = document.createElement('span');
+      platform.textContent = item.source_platform || 'web';
+      const date = document.createElement('span');
+      date.textContent = formatSavedDate(item.created_at);
+      meta.append(platform, date);
+
+      main.append(title, url, meta);
+      const summary = document.createElement('div');
+      summary.className = 'saved-summary';
+      const summaryLabel = document.createElement('strong');
+      summaryLabel.textContent = item.summaryLabel || '요약';
+      const summaryText = document.createElement('p');
+      summaryText.textContent = item.summary;
+      summary.append(summaryLabel, summaryText);
+      if(item.summaryStatus){
+        const status = document.createElement('p');
+        status.style.marginTop = '6px';
+        status.style.fontSize = '12px';
+        status.style.color = 'var(--ash)';
+        status.textContent = item.summaryStatus;
+        summary.appendChild(status);
+      }
+      main.appendChild(summary);
+
+      if(item.keywords.length){
+        const keywords = document.createElement('div');
+        keywords.className = 'keyword-row';
+        item.keywords.forEach(keyword => {
+          const chip = document.createElement('span');
+          chip.className = 'keyword-chip';
+          chip.textContent = keyword;
+          keywords.appendChild(chip);
+        });
+        main.appendChild(keywords);
+      }
+
+      if(item.selected_text){
+        const quote = document.createElement('p');
+        quote.className = 'saved-quote';
+        quote.textContent = item.selected_text;
+        main.appendChild(quote);
+      }
+
+      const open = document.createElement('a');
+      open.className = 'saved-open';
+      open.href = item.source_url;
+      open.target = '_blank';
+      open.rel = 'noopener noreferrer';
+      open.textContent = '원문 열기';
+
+      const remove = document.createElement('button');
+      remove.className = 'saved-delete';
+      remove.type = 'button';
+      remove.textContent = '삭제';
+      remove.onclick = () => deleteSavedLink(item);
+
+      const actions = document.createElement('div');
+      actions.className = 'saved-actions';
+      if((item.source_platform || detectPlatform(item.source_url)) === 'youtube'){
+        const reanalyze = document.createElement('button');
+        reanalyze.className = 'saved-open';
+        reanalyze.type = 'button';
+        reanalyze.textContent = '다시 분석';
+        reanalyze.onclick = () => reanalyzeSavedLink(item);
+        actions.append(reanalyze);
+      }
+      actions.append(open, remove);
+
+      row.append(main, actions);
+      list.appendChild(row);
+    });
+    renderKnowledgeGraph();
+  }
+
+  async function deleteSavedLink(item){
+    if(!item?.id || !supabaseClient) return;
+    const ok = confirm(`삭제할까요?\n${item.title || item.source_url || 'Untitled'}`);
+    if(!ok) return;
+    try{
+      const { data, error } = await supabaseClient
+        .from('saved_links')
+        .delete()
+        .eq('id', item.id)
+        .select('id');
+      if(error){
+        alert(`삭제 실패: ${error.message || 'Supabase 삭제 정책을 확인해 주세요.'}`);
+        return;
+      }
+      if(!data || !data.length){
+        alert('DB에서 실제로 삭제된 항목이 없습니다. Supabase SQL Editor에서 삭제 정책을 다시 실행해 주세요.');
+        await loadSavedLinks();
+        return;
+      }
+      currentSavedItems = currentSavedItems.filter(saved => saved.id !== item.id);
+      renderSavedLinks(currentSavedItems);
+      await loadSavedLinks();
+    }catch(err){
+      console.error(err);
+      alert('네트워크 오류로 삭제하지 못했습니다.');
+    }
+  }
+
+  async function reanalyzeSavedLink(item){
+    if(!item?.id || !supabaseClient) return;
+    const ok = confirm(`다시 분석할까요?\n${item.title || item.source_url || 'Untitled'}`);
+    if(!ok) return;
+    try{
+      const analysis = await analyzeYouTubeLink(item.source_url, item.title || 'Untitled');
+      if(!analysis){
+        alert('분석 API를 호출하지 못했습니다.');
+        return;
+      }
+      const updatePayload = {
+        summary: analysis.summary || null,
+        keywords: Array.isArray(analysis.keywords) ? analysis.keywords : [],
+        topics: Array.isArray(analysis.topics) ? analysis.topics : [],
+        wikilinks: Array.isArray(analysis.wikilinks) ? analysis.wikilinks : [],
+        markdown_source: analysis.markdown_source || null,
+        markdown_summary: analysis.markdown_summary || null,
+        transcript_status: analysis.transcript_status || null,
+        transcript_excerpt: analysis.transcript_excerpt || null,
+        analyzed_at: new Date().toISOString()
+      };
+      const { data, error } = await supabaseClient
+        .from('saved_links')
+        .update(updatePayload)
+        .eq('id', item.id)
+        .select('id');
+      if(error){
+        alert(`다시 분석 저장 실패: ${error.message || 'Supabase 업데이트 정책을 확인해 주세요.'}`);
+        return;
+      }
+      if(!data || !data.length){
+        alert('DB에서 실제로 업데이트된 항목이 없습니다. Supabase SQL Editor에서 업데이트 정책을 실행해 주세요.');
+        return;
+      }
+      await loadSavedLinks();
+    }catch(err){
+      console.error(err);
+      alert('다시 분석 중 오류가 발생했습니다.');
+    }
+  }
+
+  async function loadSavedLinks(e){
+    if(e) e.preventDefault();
+    const emailInput = document.getElementById('libraryEmail');
+    const email = emailInput?.value.trim() || localStorage.getItem('linkvault_save_email') || '';
+    if(!email){
+      setSavedListMessage('저장할 때 사용한 이메일을 입력해 주세요.');
+      return false;
+    }
+    if(emailInput) emailInput.value = email;
+    localStorage.setItem('linkvault_save_email', email);
+
+    if(!configured || !supabaseClient){
+      setSavedListMessage('Supabase 설정을 먼저 확인해 주세요.');
+      return false;
+    }
+
+    setSavedListMessage('저장 목록을 불러오는 중...');
+    try{
+      const { data, error } = await supabaseClient
+        .from('saved_links')
+        .select('*')
+        .eq('owner_email', email)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if(error){
+        console.error(error);
+        setSavedListMessage(`목록 불러오기 실패: ${error.message || 'Supabase 조회 정책을 확인해 주세요.'}`);
+        return false;
+      }
+      renderSavedLinks(data || []);
+    }catch(err){
+      console.error(err);
+      setSavedListMessage('네트워크 오류로 저장 목록을 불러오지 못했습니다.');
+    }
+    return false;
+  }
+
+  async function saveLinkSubmit(e){
+    e.preventDefault();
+    const email = document.getElementById('saveEmail').value.trim();
+    const title = document.getElementById('saveTitle').value.trim() || pendingSave.title || 'Untitled';
+    const btn = document.getElementById('saveSubmitBtn');
+    document.getElementById('saveErrMsg').classList.remove('show');
+
+    if(!pendingSave.url){
+      showSaveError('저장할 URL이 없습니다.');
+      return false;
+    }
+    if(!configured || !supabaseClient){
+      showSaveError('Supabase 설정을 먼저 확인해 주세요.');
+      return false;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+    try{
+      localStorage.setItem('linkvault_save_email', email);
+      const platform = detectPlatform(pendingSave.url);
+      const canonicalSourceUrl = canonicalizeSourceUrl(pendingSave.url);
+      btn.textContent = '중복 확인 중...';
+      const existing = await findExistingSavedLink(email, pendingSave.url);
+      if(existing){
+        showSaveError(`이미 저장된 링크입니다: ${existing.title || existing.source_url}`);
+        btn.disabled = false;
+        btn.textContent = '저장하기';
+        return false;
+      }
+
+      let analysis = null;
+      if(platform === 'youtube'){
+        btn.textContent = '자막 분석 중...';
+        analysis = await analyzeYouTubeLink(pendingSave.url, title);
+        btn.textContent = '저장 중...';
+      }
+
+      const insertPayload = {
+        owner_email: email,
+        source_url: pendingSave.url,
+        canonical_source_url: canonicalSourceUrl,
+        title: title,
+        selected_text: pendingSave.text || null,
+        source_platform: platform
+      };
+      if(analysis){
+        insertPayload.summary = analysis.summary || null;
+        insertPayload.keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
+        insertPayload.topics = Array.isArray(analysis.topics) ? analysis.topics : [];
+        insertPayload.wikilinks = Array.isArray(analysis.wikilinks) ? analysis.wikilinks : [];
+        insertPayload.markdown_source = analysis.markdown_source || null;
+        insertPayload.markdown_summary = analysis.markdown_summary || null;
+        insertPayload.transcript_status = analysis.transcript_status || null;
+        insertPayload.transcript_excerpt = analysis.transcript_excerpt || null;
+        insertPayload.analyzed_at = new Date().toISOString();
+      }
+
+      let { error } = await supabaseClient
+        .from('saved_links')
+        .insert(insertPayload);
+
+      if(error && /canonical_source_url|summary|keywords|topics|wikilinks|markdown|transcript|analyzed|schema cache/i.test(error.message || '')){
+        const fallbackPayload = {
+          owner_email: insertPayload.owner_email,
+          source_url: insertPayload.source_url,
+          title: insertPayload.title,
+          selected_text: insertPayload.selected_text,
+          source_platform: insertPayload.source_platform
+        };
+        const retry = await supabaseClient
+          .from('saved_links')
+          .insert(fallbackPayload);
+        error = retry.error;
+      }
+
+      if(error){
+        console.error(error);
+        if(/duplicate key|unique|saved_links_owner_email_canonical/i.test(error.message || '')){
+          showSaveError('이미 저장된 링크입니다.');
+          btn.disabled = false;
+          btn.textContent = '저장하기';
+          return false;
+        }
+        showSaveError(`저장 실패: ${error.message || 'Supabase 테이블/정책을 확인해 주세요.'}`);
+        btn.disabled = false;
+        btn.textContent = '저장하기';
+        return false;
+      }
+      showSaveSuccess();
+      const libraryEmail = document.getElementById('libraryEmail');
+      if(libraryEmail) libraryEmail.value = email;
+      loadSavedLinks();
+    }catch(err){
+      console.error(err);
+      showSaveError('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      btn.disabled = false;
+      btn.textContent = '저장하기';
+    }
+    return false;
+  }
+
+  function openSampleSave(){
+    openSaveModal({
+      url: 'https://www.youtube.com/watch?v=abc123',
+      title: 'Demo YouTube Video',
+      text: 'Important selected quote'
+    });
+  }
+
+  function openModal(){
+    document.getElementById('formView').style.display='block';
+    document.getElementById('successView').style.display='none';
+    document.getElementById('errMsg').classList.remove('show');
+    scrim.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(){
+    scrim.classList.remove('open');
+    document.body.style.overflow='';
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      closeModal();
+      closeSaveModal();
+    }
+  });
+
+  function initSaveFromQuery(){
+    const params = new URLSearchParams(location.search);
+    if(params.get('save') !== '1') return;
+    openSaveModal({
+      url: params.get('url') || '',
+      title: params.get('title') || '',
+      text: params.get('text') || ''
+    });
+  }
+
+  buildBookmarklet();
+  initSaveFromQuery();
+  if(localStorage.getItem('linkvault_save_email')){
+    const libraryEmail = document.getElementById('libraryEmail');
+    if(libraryEmail) libraryEmail.value = localStorage.getItem('linkvault_save_email');
+    loadSavedLinks();
+  }
+
+  function showSuccess(){
+    document.getElementById('formView').style.display='none';
+    document.getElementById('successView').style.display='block';
+    const c=document.getElementById('count');
+    c.textContent=(parseInt(c.textContent.replace(/,/g,''))+1).toLocaleString();
+  }
+  function showError(msg){
+    const el=document.getElementById('errMsg');
+    el.textContent=msg;
+    el.classList.add('show');
+  }
+  function setDemoStatus(id, text, ready=false){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.innerHTML='<span class="status-dot"></span>'+text;
+    el.classList.toggle('ready', ready);
+  }
+  function demoSignIn(){
+    const email=document.getElementById('demoAccountEmail').value.trim() || 'demo@linkvault.app';
+    setDemoStatus('authStatus', 'Signed in as '+email, true);
+    document.getElementById('importSummary').textContent='Account ready. Connect YouTube to choose a playlist.';
+  }
+  function demoConnectYouTube(){
+    const authReady=document.getElementById('authStatus').classList.contains('ready');
+    if(!authReady) demoSignIn();
+    setDemoStatus('youtubeStatus', 'YouTube connected', true);
+    document.getElementById('importBadge').textContent='Connected';
+    document.getElementById('importSummary').textContent='YouTube connected. Select a playlist and import videos.';
+  }
+  function demoImportPlaylist(){
+    const youtubeReady=document.getElementById('youtubeStatus').classList.contains('ready');
+    if(!youtubeReady) demoConnectYouTube();
+    const select=document.getElementById('playlistSelect');
+    const playlistName=select.options[select.selectedIndex].text;
+    document.getElementById('importBadge').textContent='3 videos imported';
+    document.getElementById('importSummary').textContent='Imported from '+playlistName+' into LinkVault Library.';
+  }
+  function heroSubmit(e){
+    e.preventDefault();
+    document.getElementById('mEmail').value=document.getElementById('heroEmail').value;
+    openModal();
+    return false;
+  }
+  async function modalSubmit(e){
+    e.preventDefault();
+    const email=document.getElementById('mEmail').value.trim();
+    const useCase=document.getElementById('mUse').value;
+    const btn=document.getElementById('submitBtn');
+    document.getElementById('errMsg').classList.remove('show');
+
+    if(!configured || !supabaseClient){
+      // Supabase 미설정 상태 — 데모 모드로 동작
+      console.warn('Supabase가 설정되지 않아 데모 모드로 동작합니다. SUPABASE_URL / SUPABASE_ANON_KEY를 교체하세요.');
+      showSuccess();
+      return false;
+    }
+
+    btn.disabled=true;
+    btn.textContent='등록 중...';
+    try{
+      const { error } = await supabaseClient
+        .from('waitlist')
+        .insert({ email: email, use_case: useCase });
+      if(error){
+        if(error.code==='23505'){
+          showError('이미 등록된 이메일입니다. 출시 소식을 기다려 주세요!');
+        }else{
+          showError('등록 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+          console.error(error);
+        }
+        btn.disabled=false;
+        btn.textContent='사전 등록 완료하기';
+        return false;
+      }
+      showSuccess();
+    }catch(err){
+      showError('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.error(err);
+      btn.disabled=false;
+      btn.textContent='사전 등록 완료하기';
+    }
+    return false;
+  }
+</script>
+</body>
+</html>
