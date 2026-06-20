@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.pnpm-store/
+
+.env
+.env.local
+.env.*.local
+
+dev-server.log
+dev-server.err.log
+
+*.tsbuildinfo

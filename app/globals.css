@@ -1,0 +1,534 @@
+:root {
+  color-scheme: light;
+  background: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.legacy-app-frame {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  background: #ffffff;
+}
+
+.lv-shell {
+  --ink: #19181f;
+  --muted: #6f6b7a;
+  --line: #ebe7ee;
+  --panel: #ffffff;
+  --soft: #f8f6f8;
+  --primary: #e9425d;
+  --primary-dark: #bd2542;
+  --accent: #1f9d8a;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+  color: var(--ink);
+  background: #f4f1f3;
+}
+
+.lv-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.lv-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 20px;
+}
+
+.lv-brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.lv-nav {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.lv-nav button,
+.lv-actions button,
+.lv-actions a,
+.lv-modal-head button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lv-nav button {
+  padding: 12px 14px;
+  border-radius: 8px;
+  text-align: left;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 700;
+}
+
+.lv-nav button.active,
+.lv-nav button:hover {
+  color: var(--primary);
+  background: #fff0f2;
+}
+
+.lv-profile {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 13px;
+}
+
+.lv-profile strong {
+  color: var(--ink);
+}
+
+.lv-main {
+  min-width: 0;
+  padding: 32px;
+}
+
+.lv-page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.lv-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.lv-topbar h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.lv-topbar p,
+.lv-hero-panel p,
+.lv-install-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.lv-icon-button,
+.lv-primary,
+.lv-secondary,
+.lv-actions a,
+.lv-actions button,
+.lv-bookmarklet {
+  min-height: 42px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.lv-icon-button {
+  width: 42px;
+  padding: 0;
+  color: #ffffff;
+  background: var(--primary);
+  border: 0;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.lv-primary,
+.lv-bookmarklet {
+  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.lv-primary:hover,
+.lv-bookmarklet:hover {
+  background: var(--primary-dark);
+}
+
+.lv-secondary,
+.lv-actions a,
+.lv-actions button {
+  color: var(--ink);
+  background: #ffffff;
+  border-color: var(--line);
+}
+
+.lv-primary:disabled,
+.lv-secondary:disabled,
+.lv-actions button:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.lv-hero-panel,
+.lv-panel,
+.lv-modal {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 18px 44px rgba(30, 24, 33, 0.08);
+}
+
+.lv-hero-panel {
+  padding: 38px;
+}
+
+.lv-hero-panel h2,
+.lv-install-panel h2 {
+  margin: 18px 0 12px;
+  font-size: 44px;
+  line-height: 1.08;
+}
+
+.lv-pill {
+  display: inline-flex;
+  width: max-content;
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: var(--primary);
+  background: #fff0f2;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.lv-url-capture,
+.lv-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.lv-url-capture input,
+.lv-toolbar input,
+.lv-modal input,
+.lv-install-panel input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 13px;
+  color: var(--ink);
+  background: #ffffff;
+  font: inherit;
+}
+
+.lv-url-capture input:focus,
+.lv-toolbar input:focus,
+.lv-modal input:focus,
+.lv-install-panel input:focus {
+  outline: 3px solid rgba(233, 66, 93, 0.15);
+  border-color: var(--primary);
+}
+
+.lv-quick-grid,
+.lv-concepts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.lv-quick-card,
+.lv-concept {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.lv-quick-card {
+  display: grid;
+  gap: 7px;
+}
+
+.lv-quick-card span,
+.lv-meta,
+.lv-concept span,
+.lv-quick-card small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.lv-panel {
+  padding: 24px;
+}
+
+.lv-empty {
+  margin-top: 16px;
+  padding: 22px;
+  border: 1px dashed #d9d2dc;
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--soft);
+}
+
+.lv-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.lv-saved-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.lv-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lv-item-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.lv-item-head span,
+.lv-chip-row span {
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--primary);
+  background: #fff0f2;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lv-saved-item a {
+  color: var(--primary-dark);
+  overflow-wrap: anywhere;
+}
+
+.lv-saved-item p {
+  margin: 12px 0 0;
+  color: #47414d;
+  line-height: 1.55;
+}
+
+.lv-meta,
+.lv-chip-row,
+.lv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.lv-actions {
+  align-content: flex-start;
+  justify-content: flex-end;
+}
+
+.lv-concepts {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0;
+}
+
+.lv-concept {
+  display: grid;
+  gap: 8px;
+}
+
+.lv-concept p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.lv-install-panel {
+  max-width: 720px;
+  display: grid;
+  gap: 16px;
+}
+
+.lv-install-panel label,
+.lv-modal label {
+  display: grid;
+  gap: 8px;
+  color: #3d3744;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.lv-bookmarklet {
+  width: max-content;
+}
+
+.lv-install-note,
+.lv-save-preview,
+.lv-error {
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.lv-install-note {
+  color: var(--muted);
+  background: var(--soft);
+}
+
+.lv-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(25, 24, 31, 0.45);
+}
+
+.lv-modal {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.lv-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.lv-modal-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.lv-modal-head button {
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--muted);
+  background: var(--soft);
+}
+
+.lv-save-preview {
+  display: grid;
+  gap: 6px;
+  background: var(--soft);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.lv-save-preview strong {
+  color: var(--ink);
+}
+
+.lv-save-preview p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+.lv-error {
+  color: #9b1c31;
+  background: #fff0f2;
+}
+
+@media (max-width: 900px) {
+  .lv-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .lv-sidebar {
+    position: static;
+    height: auto;
+    gap: 16px;
+  }
+
+  .lv-nav,
+  .lv-profile {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lv-main {
+    padding: 22px;
+  }
+
+  .lv-topbar,
+  .lv-saved-item {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .lv-quick-grid,
+  .lv-concepts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .lv-main {
+    padding: 16px;
+  }
+
+  .lv-hero-panel,
+  .lv-panel {
+    padding: 18px;
+  }
+
+  .lv-hero-panel h2 {
+    font-size: 34px;
+  }
+
+  .lv-url-capture,
+  .lv-toolbar,
+  .lv-quick-grid,
+  .lv-concepts {
+    grid-template-columns: 1fr;
+  }
+
+  .lv-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
