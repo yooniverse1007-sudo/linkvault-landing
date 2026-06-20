@@ -222,6 +222,23 @@ function chooseCaptionTrack(tracks = []) {
   return tracks[0];
 }
 
+function mergeCaptionTracks(...trackGroups) {
+  const seen = new Set();
+  const merged = [];
+  trackGroups.flat().filter(Boolean).forEach(track => {
+    const key = [
+      track.baseUrl || '',
+      track.languageCode || '',
+      track.kind || '',
+      track.name?.simpleText || track.name || ''
+    ].join('|');
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(track);
+  });
+  return merged;
+}
+
 function decodeXmlEntities(value = '') {
   return String(value)
     .replace(/&amp;/g, '&')
@@ -337,16 +354,11 @@ async function fetchTranscript(videoId) {
 
   const html = await page.text();
   const player = extractInitialPlayerResponse(html);
-  let tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-  if (!tracks.length) {
-    tracks = extractCaptionTracksFromHtml(html);
-  }
-  if (!tracks.length) {
-    tracks = await fetchInnertubeTracks(videoId, html);
-  }
-  if (!tracks.length) {
-    tracks = await fetchTimedTextTracks(videoId);
-  }
+  const playerTracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  const htmlTracks = extractCaptionTracksFromHtml(html);
+  const innertubeTracks = await fetchInnertubeTracks(videoId, html);
+  const timedTextTracks = await fetchTimedTextTracks(videoId);
+  const tracks = mergeCaptionTracks(playerTracks, htmlTracks, innertubeTracks, timedTextTracks);
   const preferredTrack = chooseCaptionTrack(tracks);
   const orderedTracks = [
     preferredTrack,
