@@ -614,7 +614,7 @@
         <p class="section-sub">북마클릿으로 저장하거나, 아래 입력창에서 바로 저장 모달을 열 수 있습니다.</p>
         <form class="url-capture" onsubmit="return quickUrlSubmit(event)">
           <input id="quickUrlInput" type="url" placeholder="YouTube URL을 붙여넣으세요">
-          <button class="btn btn-primary" type="submit">추가하기</button>
+          <button class="btn btn-primary" id="quickUrlButton" type="submit">추가하기</button>
         </form>
         <div class="quick-grid">
           <div class="quick-card"><div class="quick-thumb">YouTube</div><strong>자막 추출</strong><span>저장 즉시 분석 시작</span></div>
@@ -1027,17 +1027,50 @@
     }
   }
 
-  function quickUrlSubmit(e){
+  async function fetchYouTubeMetadata(url){
+    if(detectPlatform(url) !== 'youtube') return null;
+    try{
+      const response = await fetch('/api/youtube-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url })
+      });
+      if(!response.ok){
+        console.warn('YouTube metadata lookup failed', await response.text());
+        return null;
+      }
+      const data = await response.json();
+      if(data.error) return null;
+      return data;
+    }catch(err){
+      console.warn('YouTube metadata unavailable', err);
+      return null;
+    }
+  }
+
+  async function quickUrlSubmit(e){
     e.preventDefault();
     const input = document.getElementById('quickUrlInput');
+    const button = document.getElementById('quickUrlButton');
     const url = input?.value.trim();
     if(!url) return false;
+    if(button){
+      button.disabled = true;
+      button.textContent = '제목 확인 중...';
+    }
+    const metadata = await fetchYouTubeMetadata(url);
     openSaveModal({
       url,
-      title: 'Untitled',
+      title: metadata?.title || 'Untitled',
       text: ''
     });
     if(input) input.value = '';
+    if(button){
+      button.disabled = false;
+      button.textContent = '추가하기';
+    }
     return false;
   }
 

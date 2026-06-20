@@ -4,6 +4,12 @@ const YOUTUBE_HEADERS = {
   'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
   'Cookie': 'CONSENT=YES+cb.20210328-17-p0.ko+FX+111; SOCS=CAI'
 };
+const ANDROID_CLIENT_VERSION = '20.10.38';
+const ANDROID_HEADERS = {
+  'Content-Type': 'application/json',
+  'User-Agent': `com.google.android.youtube/${ANDROID_CLIENT_VERSION} (Linux; U; Android 14)`,
+  'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
+};
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -117,49 +123,71 @@ function extractCaptionTracksFromHtml(html = '') {
 
 async function fetchInnertubeTracks(videoId, html) {
   const { apiKey, clientVersion, visitorData } = extractInnertubeConfig(html);
-  if (!apiKey) return [];
-
   const clients = [
     {
-      clientName: 'WEB',
-      clientVersion: clientVersion || '2.20240601.00.00',
-      hl: 'ko',
-      gl: 'KR'
+      endpoint: 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
+      headers: ANDROID_HEADERS,
+      client: {
+        clientName: 'ANDROID',
+        clientVersion: ANDROID_CLIENT_VERSION,
+        androidSdkVersion: 30,
+        hl: 'ko',
+        gl: 'KR'
+      }
     },
     {
-      clientName: 'WEB_EMBEDDED_PLAYER',
-      clientVersion: clientVersion || '1.20240612.01.00',
-      hl: 'ko',
-      gl: 'KR'
-    },
-    {
-      clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
-      clientVersion: '2.0',
-      hl: 'ko',
-      gl: 'KR'
-    },
-    {
-      clientName: 'ANDROID',
-      clientVersion: '19.09.37',
-      androidSdkVersion: 30,
-      hl: 'ko',
-      gl: 'KR'
-    }
-  ];
-
-  for (const client of clients) {
-    const response = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST',
+      endpoint: apiKey ? `https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}` : '',
       headers: {
         'Content-Type': 'application/json',
         'Origin': 'https://www.youtube.com',
         'Referer': `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`,
         ...YOUTUBE_HEADERS
       },
+      client: {
+        clientName: 'WEB',
+        clientVersion: clientVersion || '2.20240601.00.00',
+        hl: 'ko',
+        gl: 'KR'
+      }
+    },
+    {
+      endpoint: apiKey ? `https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}` : '',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://www.youtube.com',
+        'Referer': `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`,
+        ...YOUTUBE_HEADERS
+      },
+      client: {
+        clientName: 'WEB_EMBEDDED_PLAYER',
+        clientVersion: clientVersion || '1.20240612.01.00',
+        hl: 'ko',
+        gl: 'KR'
+      }
+    },
+    {
+      endpoint: apiKey ? `https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}` : '',
+      headers: {
+        'Content-Type': 'application/json',
+        ...YOUTUBE_HEADERS
+      },
+      client: {
+        clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+        clientVersion: '2.0',
+        hl: 'ko',
+        gl: 'KR'
+      }
+    }
+  ];
+
+  for (const attempt of clients.filter(item => item.endpoint)) {
+    const response = await fetch(attempt.endpoint, {
+      method: 'POST',
+      headers: attempt.headers,
       body: JSON.stringify({
         context: {
           client: {
-            ...client,
+            ...attempt.client,
             visitorData: visitorData || undefined
           }
         },
@@ -263,7 +291,7 @@ function parseTranscriptJson3(data) {
 
 function parseTranscriptXml(xml = '') {
   const lines = [];
-  for (const match of xml.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)) {
+  for (const match of xml.matchAll(/<(?:text|p)\b([^>]*)>([\s\S]*?)<\/(?:text|p)>/g)) {
     const attrs = {};
     for (const attr of match[1].matchAll(/([\w-]+)="([^"]*)"/g)) {
       attrs[attr[1]] = decodeXmlEntities(attr[2]);
@@ -274,20 +302,27 @@ function parseTranscriptXml(xml = '') {
       .trim();
     if (!text) continue;
     lines.push({
-      start: Math.floor(Number(attrs.start || 0)),
+      start: Math.floor(Number(attrs.start || attrs.t || 0) / (attrs.t ? 1000 : 1)),
       text
     });
   }
   return lines;
 }
 
-function captionUrl(baseUrl) {
+function captionUrls(baseUrl) {
   try {
-    const url = new URL(baseUrl);
-    url.searchParams.set('fmt', 'json3');
-    return url.toString();
+    const original = new URL(baseUrl).toString();
+    const json = new URL(baseUrl);
+    json.searchParams.set('fmt', 'json3');
+    const srv3 = new URL(baseUrl);
+    srv3.searchParams.set('fmt', 'srv3');
+    return [...new Set([json.toString(), original, srv3.toString()])];
   } catch (_err) {
-    return `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
+    return [
+      `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=json3`,
+      baseUrl,
+      `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=srv3`
+    ];
   }
 }
 
@@ -322,28 +357,29 @@ async function fetchTranscript(videoId) {
   }
 
   for (const track of orderedTracks) {
-    const transcriptUrl = captionUrl(track.baseUrl);
-    const caption = await fetch(transcriptUrl, {
-      headers: YOUTUBE_HEADERS
-    });
-    if (!caption.ok) continue;
+    for (const transcriptUrl of captionUrls(track.baseUrl)) {
+      const caption = await fetch(transcriptUrl, {
+        headers: YOUTUBE_HEADERS
+      });
+      if (!caption.ok) continue;
 
-    const body = await caption.text();
-    let lines = [];
-    try {
-      lines = parseTranscriptJson3(JSON.parse(body));
-    } catch (_err) {
-      lines = parseTranscriptXml(body);
-    }
-    const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
-    if (transcript) {
-      return {
-        status: 'ok',
-        transcript,
-        lines,
-        language: track.languageCode || '',
-        caption_kind: track.kind || ''
-      };
+      const body = await caption.text();
+      let lines = [];
+      try {
+        lines = parseTranscriptJson3(JSON.parse(body));
+      } catch (_err) {
+        lines = parseTranscriptXml(body);
+      }
+      const transcript = lines.map(line => `[${toTimestamp(line.start)}] ${line.text}`).join('\n');
+      if (transcript) {
+        return {
+          status: 'ok',
+          transcript,
+          lines,
+          language: track.languageCode || '',
+          caption_kind: track.kind || ''
+        };
+      }
     }
   }
 
